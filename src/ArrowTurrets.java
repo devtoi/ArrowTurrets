@@ -18,7 +18,7 @@ public class ArrowTurrets extends JavaPlugin{
 	    super(pluginLoader, instance, desc, plugin, cLoader);
 	
 	    name = "Arrow turrets";
-	    version = "v0.1 (Fyarl)";
+	    version = "v1.0 (Ethros)";
 	    
 	    registerEvents();
 	    playerListener.tryLoadConfig();
