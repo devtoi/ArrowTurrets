@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +40,7 @@ public class ATPListener extends PlayerListener{
 	private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 	private boolean execIsActivated = false;
 	private long delay = 500; 
+	private Hashtable<Vector, ArrayList<Turret>> hashturrets = new Hashtable<Vector, ArrayList<Turret>>();
 	
 	public ATPListener(ArrowTurrets arrowTurrets) {
 		this.plugin = arrowTurrets;
@@ -69,54 +71,49 @@ public class ATPListener extends PlayerListener{
 		
 		if(split[0].equalsIgnoreCase("/delt"))
 		{
-			if (player.getItemInHand().getTypeID() == atItemId)
+			TargetBlock ab = new TargetBlock(player, 300, 0.3);
+			Block blk = ab.getTargetBlock();
+			if (blk != null)
 			{
-				TargetBlock ab = new TargetBlock(player, 300, 0.3);
-				Block blk = ab.getTargetBlock();
-				if (blk != null)
+				if (this.removeShooter(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ())))
 				{
-					if (this.removeShooter(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ())))
-					{
-						player.sendMessage(atString() + "Removed a turret!");
-						this.saveTurrets();
-					}
-					else
-						player.sendMessage(atString() + "There is no turret here");
+					player.sendMessage(atString() + "Removed a turret!");
+					this.saveTurrets();
 				}
+				else
+					player.sendMessage(atString() + "There is no turret here");
 			}
 		}
 		else if (split[0].equalsIgnoreCase("/addt"))
 		{
-			if (player.getItemInHand().getTypeID() == atItemId)
+			TargetBlock ab = new TargetBlock(player, 300, 0.3);
+			Block blk = ab.getTargetBlock();
+			if (blk != null)
 			{
-				TargetBlock ab = new TargetBlock(player, 300, 0.3);
-				Block blk = ab.getTargetBlock();
-				if (blk != null)
+				Location tl = new Location(player.getWorld(), blk.getX(), blk.getY(), blk.getZ());
+				if (!this.turretExists(tl))
 				{
-					Location tl = new Location(player.getWorld(), blk.getX(), blk.getY(), blk.getZ());
-					if (!this.turretExists(tl))
-					{
-						turrets.add(new Turret(player.getName(), tl));
-						player.sendMessage(atString() + "Added a turret!");
-						this.saveTurrets();
-					}
-					else
-						player.sendMessage(atString() + "There is already a turret here");
+					ArrayList<String> owners = new ArrayList<String>();
+					owners.add(player.getName());
+					ArrayList<String> accessors = new ArrayList<String>();
+					this.addTurret(tl, owners, accessors);
+					player.sendMessage(atString() + "Added a turret!");
 				}
+				else
+					player.sendMessage(atString() + "There is already a turret here");
 			}
+			else
+				player.sendMessage("Target Block is null :/");
 		}
 		else if (split[0].equalsIgnoreCase("/addta"))
 		{
 			if (split.length > 1)
 			{
-				if (player.getItemInHand().getTypeID() == atItemId)
+				TargetBlock ab = new TargetBlock(player, 300, 0.3);
+				Block blk = ab.getTargetBlock();
+				if (blk != null)
 				{
-					TargetBlock ab = new TargetBlock(player, 300, 0.3);
-					Block blk = ab.getTargetBlock();
-					if (blk != null)
-					{
-						player.sendMessage(atString() + this.addAccess(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), split[1]));
-					}
+					player.sendMessage(atString() + this.addAccess(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), split[1]));
 				}
 			}
 			else
@@ -126,14 +123,11 @@ public class ATPListener extends PlayerListener{
 		{
 			if (split.length > 1)
 			{
-				if (player.getItemInHand().getTypeID() == atItemId)
+				TargetBlock ab = new TargetBlock(player, 300, 0.3);
+				Block blk = ab.getTargetBlock();
+				if (blk != null)
 				{
-					TargetBlock ab = new TargetBlock(player, 300, 0.3);
-					Block blk = ab.getTargetBlock();
-					if (blk != null)
-					{
-						player.sendMessage(atString() + this.removeAccess(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), split[1]));
-					}
+					player.sendMessage(atString() + this.removeAccess(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), split[1]));
 				}
 			}
 			else
@@ -143,14 +137,11 @@ public class ATPListener extends PlayerListener{
 		{
 			if (split.length > 1)
 			{
-				if (player.getItemInHand().getTypeID() == atItemId)
+				TargetBlock ab = new TargetBlock(player, 300, 0.3);
+				Block blk = ab.getTargetBlock();
+				if (blk != null)
 				{
-					TargetBlock ab = new TargetBlock(player, 300, 0.3);
-					Block blk = ab.getTargetBlock();
-					if (blk != null)
-					{
-						player.sendMessage(atString() + this.addOwner(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), split[1]));
-					}
+					player.sendMessage(atString() + this.addOwner(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), split[1]));
 				}
 			}
 			else
@@ -160,14 +151,11 @@ public class ATPListener extends PlayerListener{
 		{
 			if (split.length > 1)
 			{
-				if (player.getItemInHand().getTypeID() == atItemId)
+				TargetBlock ab = new TargetBlock(player, 300, 0.3);
+				Block blk = ab.getTargetBlock();
+				if (blk != null)
 				{
-					TargetBlock ab = new TargetBlock(player, 300, 0.3);
-					Block blk = ab.getTargetBlock();
-					if (blk != null)
-					{
-						player.sendMessage(atString() + this.delOwner(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), split[1]));
-					}
+					player.sendMessage(atString() + this.delOwner(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), split[1]));
 				}
 			}
 			else
@@ -183,6 +171,48 @@ public class ATPListener extends PlayerListener{
 				return true;
 		}
 		return false;
+	}
+	
+	private void addTurret(Location loc, ArrayList<String> owners, ArrayList<String> accessors)
+	{
+		ArrayList<Turret> trt = new ArrayList<Turret>();
+		trt.add(new Turret(owners, accessors, loc));
+		int cx = loc.getBlockX() - this.xDis;
+		int cy = loc.getBlockY() - this.yDis;
+		int cz = loc.getBlockZ() - this.zDis;
+		for (int x = 0; x < (this.xDis * 2) + 1; x++)
+		{
+			for (int y = 0; y < (this.yDis * 2) + 1; y++)
+			{
+				for (int z = 0; z < (this.zDis * 2) + 1; z++)
+				{
+					Vector cBlock = new Vector(cx + x, cy + y, cz + z);
+					ArrayList<Turret> at = hashExists(cBlock);
+					if (at != null)
+					{
+						trt.addAll(at);
+						this.hashturrets.put(cBlock, trt);
+					}
+					else
+					{
+						this.hashturrets.put(cBlock, trt);
+					}
+				}
+			}
+		}
+		turrets.add(trt.get(0));
+		this.saveTurrets();
+	}
+	
+	private ArrayList<Turret> hashExists(Vector v)
+	{
+		ArrayList<Turret> exist = this.hashturrets.get(v);
+		if (exist != null)
+		{
+			return exist;
+		}
+		else
+			return null;
 	}
 	
 	private String addAccess(Location loc, String playerName, String playerToAdd)
@@ -305,7 +335,7 @@ public class ATPListener extends PlayerListener{
 	public void onPlayerMove(PlayerMoveEvent event)
 	{
 		Player player = event.getPlayer();
-		for (Turret turret : this.turrets)
+		/*for (Turret turret : this.turrets)
 		{
 			if (isInTurretArea(player, turret.getLoc().toVector()))
 			{
@@ -319,8 +349,21 @@ public class ATPListener extends PlayerListener{
 					}
 				}
 			}
+		}*/
+		Vector playerHead = new Vector(player.getLocation().getX() + 0.5, player.getLocation().getY() + 1.5, player.getLocation().getZ() + 0.5);
+		ArrayList<Turret> tlist = this.hashturrets.get(new Vector(Math.floor(playerHead.getX()), Math.floor(playerHead.getY()), Math.floor(playerHead.getZ())));
+		if (tlist != null)
+		{
+			this.activateSchedule();
+			for (Turret turret : tlist)
+			{
+				if (turret.canShoot())
+				{
+					this.shoot(player, speed, spread, playerHead.toLocation(player.getWorld()), turret.getLoc().toVector());
+					turret.setCanShoot(false);
+				}
+			}
 		}
-		
 	}
 	
 	protected void shoot(Player player, float speed, float spread, Location target, Vector shooter)
@@ -345,12 +388,48 @@ public class ATPListener extends PlayerListener{
 		{
 			if (this.turrets.get(i).getLoc().equals(loc))
 			{
+				this.removeHashTurret(this.turrets.get(i));
 				this.turrets.remove(i);
 				this.saveTurrets();
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	public void removeHashTurret(Turret turret)
+	{
+		int cx = turret.getLoc().getBlockX() - this.xDis;
+		int cy = turret.getLoc().getBlockY() - this.yDis;
+		int cz = turret.getLoc().getBlockZ() - this.zDis;
+		int nrOfBlocksRemoved = 0;
+		for (int x = 0; x < (this.xDis * 2) + 1; x++)
+		{
+			for (int y = 0; y < (this.yDis * 2) + 1; y++)
+			{
+				for (int z = 0; z < (this.zDis * 2) + 1; z++)
+				{
+					Vector cBlock = new Vector(cx + x, cy + y, cz + z);
+					ArrayList<Turret> turrets = this.hashturrets.get(cBlock);
+					if (turrets != null)
+					{
+						for (int i = 0; i < turrets.size(); i++)
+						{
+							if (turrets.get(i).equals(turret))
+							{
+								turrets.remove(i);
+								break;
+							}
+						}
+						if (turrets.isEmpty())
+						{
+							this.hashturrets.remove(cBlock);
+							nrOfBlocksRemoved++;
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	public boolean isInTurretArea (Player player, Vector turretLoc)
@@ -630,7 +709,10 @@ public class ATPListener extends PlayerListener{
 							String[] loc = splitted[2].split(",");
 							if (loc.length > 2)
 							{
-								this.turrets.add(new Turret(new ArrayList<String>(Arrays.asList(owners)), new ArrayList<String>(Arrays.asList(accessors)), new Location(this.plugin.getServer().getWorlds()[0], Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2]))));
+								this.addTurret(
+										new Location(this.plugin.getServer().getWorlds()[0], Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])),
+										new ArrayList<String>(Arrays.asList(owners)),
+										new ArrayList<String>(Arrays.asList(accessors)));
 								line = br.readLine();
 							}
 						}
