@@ -69,9 +69,9 @@ public class ATPListener extends PlayerListener{
 		
 		if(split[0].equalsIgnoreCase("/delt"))
 		{
-			if (player.getSelectedItem().getTypeID() == atItemId)
+			if (player.getItemInHand().getTypeID() == atItemId)
 			{
-				AimBlock ab = new AimBlock(player, 300, 0.3);
+				TargetBlock ab = new TargetBlock(player, 300, 0.3);
 				Block blk = ab.getTargetBlock();
 				if (blk != null)
 				{
@@ -87,9 +87,9 @@ public class ATPListener extends PlayerListener{
 		}
 		else if (split[0].equalsIgnoreCase("/addt"))
 		{
-			if (player.getSelectedItem().getTypeID() == atItemId)
+			if (player.getItemInHand().getTypeID() == atItemId)
 			{
-				AimBlock ab = new AimBlock(player, 300, 0.3);
+				TargetBlock ab = new TargetBlock(player, 300, 0.3);
 				Block blk = ab.getTargetBlock();
 				if (blk != null)
 				{
@@ -109,9 +109,9 @@ public class ATPListener extends PlayerListener{
 		{
 			if (split.length > 1)
 			{
-				if (player.getSelectedItem().getTypeID() == atItemId)
+				if (player.getItemInHand().getTypeID() == atItemId)
 				{
-					AimBlock ab = new AimBlock(player, 300, 0.3);
+					TargetBlock ab = new TargetBlock(player, 300, 0.3);
 					Block blk = ab.getTargetBlock();
 					if (blk != null)
 					{
@@ -126,9 +126,9 @@ public class ATPListener extends PlayerListener{
 		{
 			if (split.length > 1)
 			{
-				if (player.getSelectedItem().getTypeID() == atItemId)
+				if (player.getItemInHand().getTypeID() == atItemId)
 				{
-					AimBlock ab = new AimBlock(player, 300, 0.3);
+					TargetBlock ab = new TargetBlock(player, 300, 0.3);
 					Block blk = ab.getTargetBlock();
 					if (blk != null)
 					{
@@ -143,9 +143,9 @@ public class ATPListener extends PlayerListener{
 		{
 			if (split.length > 1)
 			{
-				if (player.getSelectedItem().getTypeID() == atItemId)
+				if (player.getItemInHand().getTypeID() == atItemId)
 				{
-					AimBlock ab = new AimBlock(player, 300, 0.3);
+					TargetBlock ab = new TargetBlock(player, 300, 0.3);
 					Block blk = ab.getTargetBlock();
 					if (blk != null)
 					{
@@ -160,9 +160,9 @@ public class ATPListener extends PlayerListener{
 		{
 			if (split.length > 1)
 			{
-				if (player.getSelectedItem().getTypeID() == atItemId)
+				if (player.getItemInHand().getTypeID() == atItemId)
 				{
-					AimBlock ab = new AimBlock(player, 300, 0.3);
+					TargetBlock ab = new TargetBlock(player, 300, 0.3);
 					Block blk = ab.getTargetBlock();
 					if (blk != null)
 					{
