@@ -21,7 +21,7 @@ public class ArrowTurrets extends JavaPlugin{
 	    version = "v1.1 (Kleynach)";
 	    
 	    registerEvents();
-	    playerListener.tryLoadConfig();
+	    playerListener.loadConfig();
 	    playerListener.loadTurrets();
 	}
 	
@@ -38,5 +38,6 @@ public class ArrowTurrets extends JavaPlugin{
 	private void registerEvents() {
 	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
 	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_COMMAND, playerListener, Priority.Normal, this);
+	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_ITEM, playerListener, Priority.Normal, this);
 	}
 }

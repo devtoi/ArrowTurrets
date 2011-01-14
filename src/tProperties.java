@@ -237,11 +237,12 @@ public class tProperties {
 		{
 			try{
 				b = Boolean.parseBoolean(this.props.get(key));
+		        return b;
 			}
 	    	catch(NullPointerException nfe){
 	    		b = false;
+	    		return false;
 	    	}
-	        return b;
 		}
 		else
 		{
@@ -252,6 +253,8 @@ public class tProperties {
 
     private boolean isBoolean(String str)
     {
+    	if (str == null)
+    		return false;
     	if (str.equalsIgnoreCase("true") || str.equalsIgnoreCase("false"))
     		return true;
     	else

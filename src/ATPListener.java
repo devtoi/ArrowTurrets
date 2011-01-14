@@ -13,11 +13,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Arrow;
 import org.bukkit.Block;
-import org.bukkit.Color;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Player;
 import org.bukkit.Vector;
 import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.PlayerItemEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
@@ -36,12 +37,13 @@ public class ATPListener extends PlayerListener{
 	private int atItemId = 262;
 	private File atdir = new File("ArrowTurrets");
 	private String turretsFilePath = atdir.getPath() + File.separator + "ArrowTurrets.txt";
-	private File settingsFile = new File(atdir.getPath() + File.separator + "at.settings");
 	private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 	private boolean execIsActivated = false;
-	private long delay = 500; 
+	private long delay = 500;
+	private boolean useHash = true; 
 	private Hashtable<Vector, ArrayList<Integer>> hashturrets = new Hashtable<Vector, ArrayList<Integer>>();
-	tProperties properties = new tProperties("ArrowTurrets" + File.separator + "ArrowTurrets.properties");
+	private tProperties properties = new tProperties("ArrowTurrets" + File.separator + "ArrowTurrets.properties");
+	private Hashtable<Vector, ArrayList<Integer>> turretSeats = new Hashtable<Vector, ArrayList<Integer>>();
 	
 	public ATPListener(ArrowTurrets arrowTurrets) {
 		this.plugin = arrowTurrets;
@@ -62,6 +64,30 @@ public class ATPListener extends PlayerListener{
 				}
 			}, delay, TimeUnit.MILLISECONDS);
 			this.execIsActivated = true;
+		}
+	}
+	
+	public void onPlayerItem(PlayerItemEvent event)
+	{
+		Player player = event.getPlayer();
+		Location pl = new Location(player.getWorld(),
+				Math.floor(player.getLocation().getY() + 0.5),
+				Math.floor(player.getLocation().getY() + 0.5),
+				Math.floor(player.getLocation().getY() + 0.3));
+		
+		if (this.turretSeats.containsKey(pl.toVector()))
+		{
+			Integer[] tir = (Integer[])this.turretSeats.get(pl.toVector()).toArray();
+			TargetBlock ab = new TargetBlock(player, 300, 0.3);
+			Block blk = ab.getTargetBlock();
+			Location targetLoc = new Location(player.getWorld(), blk.getX() + 0.5, blk.getY() + 0.5, blk.getZ() + 0.5);
+			
+			for (Integer t : tir)
+			{
+				Vector shooter = this.turrets.get(t).getLoc().toVector();
+				shooter = new Vector(shooter.getX() + 0.5, shooter.getY() + 0.5, shooter.getZ() + 0.5);
+				shoot(player, this.speed, this.spread, targetLoc, shooter);
+			}
 		}
 	}
 	
@@ -94,10 +120,18 @@ public class ATPListener extends PlayerListener{
 				Location tl = new Location(player.getWorld(), blk.getX(), blk.getY(), blk.getZ());
 				if (!this.turretExists(tl))
 				{
-					ArrayList<String> owners = new ArrayList<String>();
-					owners.add(player.getName());
-					ArrayList<String> accessors = new ArrayList<String>();
-					this.addTurret(tl, owners, accessors);
+					String name = "";
+					if (split.length >= 2)
+						name = split[1];
+					if(useHash)
+					{
+						ArrayList<String> owners = new ArrayList<String>();
+						owners.add(player.getName());
+						ArrayList<String> accessors = new ArrayList<String>();
+						this.addTurret(name, tl, null, owners, accessors);
+					}
+					else
+						this.turrets.add(new Turret(player.getName(), tl));
 					player.sendMessage(atString() + "Added a turret!");
 				}
 				else
@@ -105,6 +139,45 @@ public class ATPListener extends PlayerListener{
 			}
 			else
 				player.sendMessage("Target Block is null :/");
+		}
+		else if (split[0].equalsIgnoreCase("/addts"))
+		{
+			if (split.length >= 2)
+			{
+				TargetBlock ab = new TargetBlock(player, 300, 0.3);
+				Block blk = ab.getTargetBlock();
+				if (blk != null)
+				{
+					Location tl = new Location(player.getWorld(), blk.getX(), blk.getY(), blk.getZ());
+					player.sendMessage(atString() + this.addTurretSeat(player.getName(), split[1], tl));
+				}
+			}
+			else
+				player.sendMessage(atString() + "You need to define a turret name!");
+		}
+		else if (split[0].equalsIgnoreCase("/delts"))
+		{
+			if (split.length >= 2)
+			{
+				player.sendMessage(atString() + this.delTurretSeat(player.getName(), split[1]));
+			}
+			else
+				player.sendMessage(atString() + "You need to define a turret name!");
+		}
+		else if (split[0].equalsIgnoreCase("/settn"))
+		{
+			if (split.length >= 2)
+			{
+				TargetBlock ab = new TargetBlock(player, 300, 0.3);
+				Block blk = ab.getTargetBlock();
+				if (blk != null)
+				{
+					Location tl = new Location(player.getWorld(), blk.getX(), blk.getY(), blk.getZ());
+					player.sendMessage(atString() + this.setTurretName(player.getName(), split[1], tl));
+				}
+			}
+			else
+				player.sendMessage(atString() + "You need to define a turret name!");
 		}
 		else if (split[0].equalsIgnoreCase("/addta"))
 		{
@@ -174,9 +247,17 @@ public class ATPListener extends PlayerListener{
 		return false;
 	}
 	
-	private void addTurret(Location loc, ArrayList<String> owners, ArrayList<String> accessors)
+	private void addTurret(String name, Location loc, Location seatLoc, ArrayList<String> owners, ArrayList<String> accessors)
 	{
-		this.turrets.add(new Turret(owners, accessors, loc));
+		Turret trtToAdd = new Turret(owners, accessors, loc); 
+		if (!name.equals(""))
+			trtToAdd.setName(name);
+		if (seatLoc != null)
+		{
+			trtToAdd.setSeatLoc(seatLoc);
+			trtToAdd.setUsingSeat(true);
+		}
+		this.turrets.add(trtToAdd);
         int turret_id = this.turrets.size() - 1; // Index in list.
 	    // Add the current turret id to our collection
         ArrayList<Integer> turret_current_id_list = new ArrayList<Integer>();
@@ -215,17 +296,6 @@ public class ATPListener extends PlayerListener{
 		}
 		this.saveTurrets();
 	}
-	
-	/*private ArrayList<Turret> hashExists(Vector v)
-	{
-		ArrayList<Turret> exist = this.hashturrets.get(v);
-		if (exist != null)
-		{
-			return exist;
-		}
-		else
-			return null;
-	}*/
 	
 	private String addAccess(Location loc, String playerName, String playerToAdd)
 	{
@@ -339,58 +409,144 @@ public class ATPListener extends PlayerListener{
 		return line;
 	}
 	
+	private String addTurretSeat (String playerName, String turretName, Location loc)
+	{
+		for (int i = 0; i < this.turrets.size(); i++)
+		{
+			if (turrets.get(i).getName().equalsIgnoreCase(turretName))
+			{
+				if (turrets.get(i).getOwners().contains(playerName))
+				{
+					turrets.get(i).setSeatLoc(loc.clone());
+					turrets.get(i).setUsingSeat(true);
+					if (useHash)
+					{
+						ArrayList<Integer> seatIds = new ArrayList<Integer>();
+						seatIds.add(i);
+						if (this.turretSeats.containsKey(loc.toVector()))
+						{
+							seatIds.addAll(this.turretSeats.get(loc.toVector()));
+							this.turretSeats.put(loc.toVector(), seatIds);
+						}
+						else
+						{
+							this.turretSeats.put(loc.toVector(), seatIds);
+						}
+					}
+					return "You set the turret seat for the " + turretName + " turret";
+				}
+				else
+				{
+					return "You are not an owner of this turret!";
+				}
+			}
+		}
+		return "There is no turret by that name!";
+	}
+	
+	private String delTurretSeat (String playerName, String turretName)
+	{
+		for (Turret turret : this.turrets)
+		{
+			if (turret.getName().equalsIgnoreCase(turretName))
+			{
+				if (turret.getOwners().contains(playerName))
+				{
+					turret.setUsingSeat(false);
+					return "You deleted the seat for the turret " + turretName;
+				}
+					
+				break;
+			}
+		}
+		return "There is no turret by the name " + turretName;
+	}
+	
+	private String setTurretName(String playerName, String turretName, Location loc) 
+	{
+		int index = -1;
+		boolean exists = false;
+		boolean isPlayerOwner = false;
+		for (int i = 0; i < this.turrets.size(); i++)
+		{
+			if (turrets.get(i).getLoc().equals(loc))
+			{
+				if (turrets.get(i).getOwners().contains(playerName))
+				{
+					index = i;
+					isPlayerOwner = true;
+				}
+				else
+					index = i;
+			}
+			if (turrets.get(i).getName().equalsIgnoreCase(turretName))
+			{
+				exists = true;
+			}
+		}
+		if (index != -1 && !exists)
+		{
+			if (isPlayerOwner)
+				return "The turret is now called " + turretName;
+			else
+				return "You are not an owner of this turret!";
+		}
+		else if (index == -1)
+			return "There is no turret here!";
+		else if (exists)
+			return "There is already a turret by the name " + turretName + "!";
+		else
+			return "There is no turret here!";
+	}
+	
 	private String atString()
 	{
-		return Color.AQUA + "[ArrowTurrets] " + Color.YELLOW; 
+		return ChatColor.AQUA + "[ArrowTurrets] " + ChatColor.YELLOW; 
 	}
 	
 	public void onPlayerMove(PlayerMoveEvent event)
 	{
 		Player player = event.getPlayer();
-		/*for (Turret turret : this.turrets)
+		
+		if (useHash)
 		{
-			if (isInTurretArea(player, turret.getLoc().toVector()))
+			Vector playerHead = new Vector(player.getLocation().getX() + 0.5, player.getLocation().getY() + 1.5, player.getLocation().getZ() + 0.5);
+			Vector playerHeadFloored = new Vector(Math.floor(playerHead.getX()), Math.floor(playerHead.getY()), Math.floor(playerHead.getZ()));
+			if (this.hashturrets.containsKey(playerHeadFloored))
 			{
+				ArrayList<Integer> tsc = this.hashturrets.get(playerHeadFloored);
 				this.activateSchedule();
-				if (!turret.getOwners().contains(player.getName()) && !turret.getAccessors().contains(player.getName()))
+				// For each possible turret to shoot in that location check access and if they should shoot, make them.
+				for(int i : tsc)
 				{
-					if (turret.canShoot())
-					{
-						this.shoot(player, speed, spread, player.getLocation(), turret.getLoc().toVector());
-						turret.setCanShoot(false);
-					}
+				    Turret turret = this.turrets.get(i);
+			    	if (turret.canShoot())
+			    	{
+			    		if (!turret.getOwners().contains(player.getName()) && !turret.getAccessors().contains(player.getName()))
+						{
+							this.shoot(player, speed, spread, playerHead.toLocation(player.getWorld()), turret.getLoc().toVector());
+							turret.setCanShoot(false);
+						}
+		    		}
 				}
 			}
 		}
-		Vector playerHead = new Vector(player.getLocation().getX() + 0.5, player.getLocation().getY() + 1.5, player.getLocation().getZ() + 0.5);
-		ArrayList<Turret> tlist = this.hashturrets.get(new Vector(Math.floor(playerHead.getX()), Math.floor(playerHead.getY()), Math.floor(playerHead.getZ())));
-		if (tlist != null)
+		else
 		{
-			this.activateSchedule();
-			for (Turret turret : tlist)
+			for (Turret turret : this.turrets)
 			{
-				if (turret.canShoot())
+				if (isInTurretArea(player, turret.getLoc().toVector()))
 				{
-					this.shoot(player, speed, spread, playerHead.toLocation(player.getWorld()), turret.getLoc().toVector());
-					turret.setCanShoot(false);
+					this.activateSchedule();
+					if (!turret.getOwners().contains(player.getName()) && !turret.getAccessors().contains(player.getName()))
+					{
+						if (turret.canShoot())
+						{
+							this.shoot(player, speed, spread, player.getLocation(), turret.getLoc().toVector());
+							turret.setCanShoot(false);
+						}
+					}
 				}
-			}
-		}*/
-		Vector playerHead = new Vector(player.getLocation().getX() + 0.5, player.getLocation().getY() + 1.5, player.getLocation().getZ() + 0.5);
-		Vector playerHeadFloored = new Vector(Math.floor(playerHead.getX()), Math.floor(playerHead.getY()), Math.floor(playerHead.getZ()));
-		if (this.hashturrets.containsKey(playerHeadFloored))
-		{
-			ArrayList<Integer> tsc = this.hashturrets.get(playerHeadFloored);
-			this.activateSchedule();
-			// For each possible turret to shoot in that location check access and if they should shoot, make them.
-			for(int i : tsc)
-			{
-			    Turret turret = this.turrets.get(i);
-		    	if (turret.canShoot())
-		    	{
-					this.shoot(player, speed, spread, playerHead.toLocation(player.getWorld()), turret.getLoc().toVector());
-					turret.setCanShoot(false);
-	    		}
 			}
 		}
 	}
@@ -401,7 +557,7 @@ public class ATPListener extends PlayerListener{
 		{
 	        Location drag = new Location(target.getWorld(), target.getX() - shooter.getX(), target.getY() - shooter.getY(), target.getZ() - shooter.getZ());
 			Location startPos = new Location(target.getWorld(), target.getX() - drag.getX() + 0.5, target.getY() - drag.getY() + 0.5, target.getZ() - drag.getZ() + 0.5);
-			Arrow arrow = target.getWorld().spawnArrow(startPos, drag.toVector(), speed, spread);
+			target.getWorld().spawnArrow(startPos, drag.toVector(), speed, spread);
 	        /*en arrow = new en(etc.getMCServer().e);
 	        arrow.c(startPos.x + 0.5, startPos.y + 0.5,
 	        		startPos.z + 0.5, 0, 0);
@@ -411,13 +567,14 @@ public class ATPListener extends PlayerListener{
 		}
     }
 	
-	/*public boolean removeShooter(Location loc)
+	public boolean removeShooter(Location loc)
 	{
 		for (int i = 0; i < this.turrets.size(); i++)
 		{
 			if (this.turrets.get(i).getLoc().equals(loc))
 			{
-				this.removeHashTurret(this.turrets.get(i));
+				if (useHash)
+					this.removeHashTurret(this.turrets.get(i));
 				this.turrets.remove(i);
 				this.saveTurrets();
 				return true;
@@ -428,7 +585,7 @@ public class ATPListener extends PlayerListener{
 	
 	public void removeHashTurret(Turret turret)
 	{
-		int cx = turret.getLoc().getBlockX() - this.xDis;
+		/*int cx = turret.getLoc().getBlockX() - this.xDis;
 		int cy = turret.getLoc().getBlockY() - this.yDis;
 		int cz = turret.getLoc().getBlockZ() - this.zDis;
 		int nrOfBlocksRemoved = 0;
@@ -458,22 +615,21 @@ public class ATPListener extends PlayerListener{
 					}
 				}
 			}
-		}
+		}*/
 	}
 	
 	public boolean isInTurretArea (Player player, Vector turretLoc)
 	{
-		boolean inside = false;
 		if (player.getLocation().getX() + 0.5 < turretLoc.getX() + this.xDis - 1 && player.getLocation().getX() + 0.5 > turretLoc.getX() - this.xDis - 1 &&
 			player.getLocation().getZ() + 0.5 < turretLoc.getZ() + this.zDis && player.getLocation().getZ() + 0.5 > turretLoc.getZ() - this.zDis &&
-			player.getLocation().getY() + 1 < turretLoc.getY() + this.yDis && player.getLocation().getY() + 1 > turretLoc.getY() - this.yDis)
+			player.getLocation().getY() + 1.5 < turretLoc.getY() + this.yDis && player.getLocation().getY() + 1.5 > turretLoc.getY() - this.yDis)
 		{
-			inside = true;
+			return true;
 		}
-		return inside;
-	}*/
+		return false;
+	}
 	
-	public void tryLoadConfig()
+	public void loadConfig()
 	{
 		try{
 			this.properties.load();
@@ -484,7 +640,7 @@ public class ATPListener extends PlayerListener{
 			System.out.println("[ArrowTurrets] " + "Failed to load config!");
 		}
 		
-		this.atItemId =  properties.getInt("item-id", 288);
+		this.atItemId = properties.getInt("item-id", 288);
 		this.numberOfArrows = properties.getInt("number-of-arrows", 1);
 		this.speed = properties.getFloat("speed", 1.0F);
 		this.spread = properties.getFloat("spread", 7.0F);
@@ -493,176 +649,8 @@ public class ATPListener extends PlayerListener{
 		this.yDis = properties.getInt("y-distance", 5);
 		this.zDis = properties.getInt("z-distance", 5);
 		this.turretsFilePath = properties.getString("turrets-filepath", "ArrowTurrets" + File.separator + "ArrowTurrets.txt");
+		this.useHash = properties.getBoolean("use-hash", true);
 		properties.save();
-		
-		/*if (atdir.exists())
-		{
-			if (this.settingsFile.exists())
-			{
-				loadConfig(this.settingsFile);
-			}
-			else
-				this.saveConfig();
-		}
-		else
-		{
-			if (atdir.mkdir())
-				System.out.println("[ArrowTurrets] Created ArrowTurrets folder!");
-			else
-				System.out.println("[ArrowTurrets] Failed to create ArrowTurrets folder!");
-			
-		}*/
-	}
-	
-	private void loadConfig(File file)
-	{
-		try
-		{
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			try
-			{
-				String line = br.readLine();
-				if (line != null)
-				{
-					while (line != null)
-					{
-						if (!line.startsWith("//") || !line.startsWith("#") || !line.startsWith(";"))
-						{
-							String[] splitted = line.split("=");
-							if (splitted.length > 1)
-							{
-								if (!splitted[0].equals("") && !splitted[1].equals(""))
-								{
-									if (splitted[0].equalsIgnoreCase("item-id"))
-									{
-										try {this.atItemId = Integer.valueOf(splitted[1]);}
-										catch (NumberFormatException nfe){System.out.println("[ArrowTurrets] Failed to read item id from configure folder!");}
-									}
-									else if (splitted[0].equalsIgnoreCase("number-of-arrows"))
-									{
-										try {this.numberOfArrows = Integer.valueOf(splitted[1]);}
-										catch (NumberFormatException nfe){System.out.println("[ArrowTurrets] Failed to read number of arrows from configure folder!");}
-									}
-									else if (splitted[0].equalsIgnoreCase("speed"))
-									{
-										try {this.speed = Float.valueOf(splitted[1]);}
-										catch (NumberFormatException nfe){System.out.println("[ArrowTurrets] Failed to read speed from configure folder!");}
-									}
-									else if (splitted[0].equalsIgnoreCase("spread"))
-									{
-										try {this.spread = Float.valueOf(splitted[1]);}
-										catch (NumberFormatException nfe){System.out.println("[ArrowTurrets] Failed to read spread from configure folder!");}
-									}
-									else if (splitted[0].equalsIgnoreCase("turrets-filepath"))
-									{
-										this.turretsFilePath = splitted[1];
-									}
-									else if (splitted[0].equalsIgnoreCase("x-distance"))
-									{
-										try {this.xDis = Integer.valueOf(splitted[1]);}
-										catch (NumberFormatException nfe){System.out.println("[ArrowTurrets] Failed to read x distance from configure folder!");}
-									}
-									else if (splitted[0].equalsIgnoreCase("y-distance"))
-									{
-										try {this.yDis = Integer.valueOf(splitted[1]);}
-										catch (NumberFormatException nfe){System.out.println("[ArrowTurrets] Failed to read y distance from configure folder!");}
-									}
-									else if (splitted[0].equalsIgnoreCase("z-distance"))
-									{
-										try {this.zDis = Integer.valueOf(splitted[1]);}
-										catch (NumberFormatException nfe){System.out.println("[ArrowTurrets] Failed to read z distance from configure folder!");}
-									}
-									else if (splitted[0].equalsIgnoreCase("delay"))
-									{
-										try {this.delay = Long.valueOf(splitted[1]);}
-										catch (NumberFormatException nfe){System.out.println("[ArrowTurrets] Failed to read delay from configure folder!");}
-									}
-								}
-							}
-						}
-						line = br.readLine();
-					}
-				}
-			}
-			catch (IOException e)
-			{
-				System.out.println("Loading Config inner:" + this.settingsFile + e.getStackTrace());
-				e.printStackTrace();
-			}
-			finally
-			{
-				br.close();
-			}
-		}
-		catch (IOException e)
-		{
-			System.out.println("Loading config outter:" + this.settingsFile + e.getStackTrace());
-			e.printStackTrace();
-		}
-	}
-	
-	private void saveConfig()
-	{
-		try
-		{
-			BufferedWriter bw = new BufferedWriter(new FileWriter(this.settingsFile));
-			if (!this.atdir.exists())
-			{
-				System.out.println("[ArrowTurrets] Could not find ArrowTurrets directory!");
-				if (atdir.mkdir())
-					System.out.println("[ArrowTurrets] ArrowTurrets directory created!");
-				else
-					System.out.println("[ArrowTurrets] Failed to create ArrowTurrets directory!");
-			}
-			
-			try
-			{
-				bw.write("; Id of what item you need to have in your hand");
-				bw.newLine();
-				bw.write("item-id=" + this.atItemId);
-				bw.newLine();
-				bw.write("; How many arrows that are shot at each burst");
-				bw.newLine();
-				bw.write("number-of-arrows=" + this.numberOfArrows);
-				bw.newLine();
-				bw.write("; The speed of the arrows");
-				bw.newLine();
-				bw.write("speed=" + this.speed);
-				bw.newLine();
-				bw.write("; How much the arrows are spread, similar to recoil and accuracy");
-				bw.newLine();
-				bw.write("spread=" + this.spread);
-				bw.newLine();
-				bw.write("; The delay between shots, to low and you might crash your server!");
-				bw.newLine();
-				bw.write("delay=" + this.delay);
-				bw.newLine();
-				bw.write("; The distance in the x-axis that the turrets search");
-				bw.newLine();
-				bw.write("x-distance=" + this.xDis);
-				bw.newLine();
-				bw.write("; The distance in the y-axis that the turrets search");
-				bw.newLine();
-				bw.write("y-distance=" + this.yDis);
-				bw.newLine();
-				bw.write("; The distance in the z-axis that the turrets search");
-				bw.newLine();
-				bw.write("z-distance=" + this.zDis);
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-			finally
-			{
-				bw.flush();
-				bw.close();
-			}
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
 	}
 	
 	public void saveTurrets()
@@ -710,16 +698,23 @@ public class ATPListener extends PlayerListener{
 						else
 							accessors += "," + accessor;
 					}
-					if (first)
+					if (!first)
 					{
-						bw.write(owners + ";" + accessors + ";" + turret.getLoc().getX() + "," + turret.getLoc().getY() + "," + turret.getLoc().getZ());
-						first = false;
+						bw.newLine();
+					}
+					if (turret.getSeatLoc() != null)
+					{
+						bw.write(turret.getName() + ";" + owners + ";" + accessors + ";" +
+								turret.getLoc().getX() + "," + turret.getLoc().getY() + "," + turret.getLoc().getZ() + ";" +
+								turret.getSeatLoc().getX() + "," + turret.getSeatLoc().getY() + "," + turret.getSeatLoc().getZ());
 					}
 					else
 					{
-						bw.newLine();
-						bw.write(owners + ";" + accessors + ";" + turret.getLoc().getX() + "," + turret.getLoc().getY() + "," + turret.getLoc().getZ());
+						bw.write(turret.getName() + ";" + owners + ";" + accessors + ";" +
+								turret.getLoc().getX() + "," + turret.getLoc().getY() + "," + turret.getLoc().getZ() + ";" +
+								",,");
 					}
+					first = false;
 				}
 			}
 			catch (IOException e)
@@ -751,17 +746,48 @@ public class ATPListener extends PlayerListener{
 					while (line != null)
 					{
 						String[] splitted = line.split(";");
-						if (splitted.length > 2)
+						if (splitted.length >= 5)
 						{
-							String[] owners = splitted[0].split(",");
-							String[] accessors = splitted[1].split(",");
-							String[] loc = splitted[2].split(",");
-							if (loc.length > 2)
+							String name = splitted[0];
+							String[] owners = splitted[1].split(",");
+							String[] accessors = splitted[2].split(",");
+							String[] loc = splitted[3].split(",");
+							String[] seatLoc = splitted[4].split(",");
+							if (loc.length == 3)
 							{
-								this.addTurret(
-										new Location(this.plugin.getServer().getWorlds()[0], Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])),
-										new ArrayList<String>(Arrays.asList(owners)),
-										new ArrayList<String>(Arrays.asList(accessors)));
+								if (useHash)
+								{
+									if (seatLoc.length == 3)
+									{
+										this.addTurret(
+												name,
+												new Location(this.plugin.getServer().getWorlds()[0], Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])),
+												new Location(this.plugin.getServer().getWorlds()[0], Float.valueOf(seatLoc[0]), Float.valueOf(seatLoc[1]), Float.valueOf(seatLoc[2])),
+												new ArrayList<String>(Arrays.asList(owners)),
+												new ArrayList<String>(Arrays.asList(accessors)));
+									}
+									else
+										this.addTurret(
+												name,
+												new Location(this.plugin.getServer().getWorlds()[0], Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])),
+												null,
+												new ArrayList<String>(Arrays.asList(owners)),
+												new ArrayList<String>(Arrays.asList(accessors)));
+								}
+								else
+								{
+									Turret trt = new Turret(new ArrayList<String>(Arrays.asList(owners)),
+											new ArrayList<String>(Arrays.asList(accessors)),
+											new Location(this.plugin.getServer().getWorlds()[0], Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])));
+									if (!name.equals(""))
+										trt.setName(name);
+									if (seatLoc.length == 3)
+									{
+										trt.setSeatLoc(new Location(this.plugin.getServer().getWorlds()[0], Float.valueOf(seatLoc[0]), Float.valueOf(seatLoc[1]), Float.valueOf(seatLoc[2])));
+										trt.setUsingSeat(true);
+									}
+									this.turrets.add(trt);
+								}
 								line = br.readLine();
 							}
 						}

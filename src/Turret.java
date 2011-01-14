@@ -9,6 +9,9 @@ public class Turret {
 	private ArrayList<String> accessors = new ArrayList<String>();
 	private ArrayList<String> owners = new ArrayList<String>();
 	private boolean canShoot = true;
+	private boolean usingSeat = false;
+	private Location seatLoc;
+	private String name;
 	
 	public Turret (String owner, Location loc)
 	{
@@ -53,5 +56,29 @@ public class Turret {
 
 	public void setAccessors(ArrayList<String> accessors) {
 		this.accessors = accessors;
+	}
+
+	public boolean isUsingSeat() {
+		return usingSeat;
+	}
+
+	public void setUsingSeat(boolean usingSeat) {
+		this.usingSeat = usingSeat;
+	}
+
+	public Location getSeatLoc() {
+		return seatLoc;
+	}
+
+	public void setSeatLoc(Location seatLoc) {
+		this.seatLoc = seatLoc;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }
