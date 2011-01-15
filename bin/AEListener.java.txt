@@ -1,0 +1,228 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
+public class AEListener extends PluginListener{
+	
+	private ArrayList<Turret> turrets = new ArrayList<Turret>();
+	private float speed = 1.0F;
+    private float spread = 7.0F;
+	private PropertiesFile properties = new PropertiesFile("arrowturrets.properties");
+	private static final Logger logger = Logger.getLogger("Minecraft.ArrowTurrets");
+	private int xDis = 5;
+	private int yDis = 5;
+	private int zDis = 5;
+	private int numberOfArrows = 1;
+	private int atItemId = 262;
+	private String turretsFilePath = "ArrowTurrets.txt";
+	
+	public AEListener()
+	{
+		
+	}
+	
+	public void onArmSwing(Player player)
+	{
+		if (player.canUseCommand("/arrowturret"))
+		{
+			if (player.getItemInHand() == atItemId)
+			{
+				HitBlox blox = new HitBlox(player, 300, 0.3);
+				Block blk = blox.getTargetBlock();
+				if (blk != null)
+				{
+					if (this.removeShooter(new Location(blk.getX(), blk.getY(), blk.getZ())))
+					{
+						player.sendMessage("Removed a turret!");
+						this.saveTurrets();
+					}
+				}
+			}
+		}
+	}
+	
+	public boolean onItemUse(Player player, Block blockPlaced, Block blockClicked, Item item)
+	{
+		if (player.canUseCommand("/arrowturret"))
+		{
+			if (item.getItemId() == atItemId)
+			{
+				HitBlox blox = new HitBlox(player, 300, 0.3);
+				Block blk = blox.getTargetBlock();
+				if (blk != null)
+				{
+					turrets.add(new Turret(player.getName(), new Location(blk.getX(), blk.getY(), blk.getZ())));
+					player.sendMessage("Added a turret!");
+					this.saveTurrets();
+				}
+			}
+		}
+		return false;
+	}
+	
+	public void onPlayerMove(Player player, Location from, Location to)
+	{
+		for (Turret turret : this.turrets)
+		{
+			if (isInTurretArea(player, turret.getLoc()))
+			{
+				if (!player.getName().equalsIgnoreCase(turret.getOwner()))
+					this.shoot(player, speed, spread, player.getLocation(), turret.getLoc());
+			}
+		}
+	}
+	
+
+	public boolean removeShooter(Location loc)
+	{
+		for (int i = 0; i < this.turrets.size(); i++)
+		{
+			if (this.locEq(loc, this.turrets.get(i).getLoc()))
+			{
+				this.turrets.remove(i);
+				this.saveTurrets();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean locEq(Location a, Location b)
+	{
+		if (a.x == b.x)
+			if (a.y == b.y)
+				if (a.z == b.z)
+					return true;
+		return false;
+	}
+	
+	
+	public boolean isInTurretArea (Player player, Location turretLoc)
+	{
+		boolean inside = false;
+		if (player.getX() + 0.5 < turretLoc.x + this.xDis - 1 && player.getX() + 0.5 > turretLoc.x - this.xDis - 1 &&
+			player.getZ() + 0.5 < turretLoc.z + this.zDis && player.getZ() + 0.5 > turretLoc.x - this.zDis &&
+			player.getY() + 1 < turretLoc.y + this.yDis && player.getY() + 1 > turretLoc.y - this.yDis)
+		{
+			inside = true;
+		}
+		return inside;
+	}
+	
+	protected void shoot(Player player, float speed, float spread, Location target, Location shooter)
+	{
+		for (int i = 0; i < this.numberOfArrows; i++)
+		{
+	        Location drag = new Location(target.x - shooter.x, target.y - shooter.y, target.z - shooter.z);
+			Location startPos = new Location(target.x - drag.x, target.y - drag.y, target.z - drag.z);
+	        en arrow = new en(etc.getMCServer().e);
+	        arrow.c(startPos.x + 0.5, startPos.y + 0.5,
+	        		startPos.z + 0.5, 0, 0);
+	        etc.getMCServer().e.a(arrow);
+	        arrow.a(drag.x, drag.y, drag.z,
+	        		speed, spread);
+		}
+    }
+	
+	public void loadConfig()
+	{
+		try {
+            properties.load();
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Arrow Turrets: Failed to load configuration: "
+                    + e.getMessage());
+        }
+    	this.xDis = properties.getInt("x-distance", 5);
+    	this.yDis = properties.getInt("y-distance", 5);
+    	this.zDis = properties.getInt("z-distance", 5);
+    	this.numberOfArrows = properties.getInt("arrows-each-shot", 1);
+    	this.atItemId = properties.getInt("turret-creator-id", 262);
+    	this.speed = (float)properties.getDouble("speed", 1.0);
+    	this.spread = (float)properties.getDouble("spread", 7.0);
+    	this.turretsFilePath = properties.getString("turrets-path", "ArrowTurrets.txt");
+	}
+	
+	public void saveTurrets()
+	{
+		try
+		{
+			BufferedWriter bw = new BufferedWriter(new FileWriter(this.turretsFilePath));
+			try
+			{
+				boolean first = true;
+				for (Turret turret : this.turrets)
+				{
+					if (first)
+					{
+						bw.write(turret.getOwner() + ";" + turret.getLoc().x + "," + turret.getLoc().y + "," + turret.getLoc().z);
+						first = false;
+					}
+					else
+					{
+						bw.newLine();
+						bw.write(turret.getOwner() + ";" + turret.getLoc().x + "," + turret.getLoc().y + "," + turret.getLoc().z);
+					}
+				}
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+			finally
+			{
+				bw.flush();
+				bw.close();
+			}
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	public void loadTurrets()
+	{
+		try
+		{
+			BufferedReader br = new BufferedReader(new FileReader(this.turretsFilePath));
+			try
+			{
+				String line = br.readLine();
+				if (line != null)
+				{
+					while (line != null)
+					{
+						String[] splitted = line.split(";");
+						if (splitted.length > 1)
+						{
+							String[] loc = splitted[1].split(",");
+							if (loc.length > 2)
+							{
+								this.turrets.add(new Turret(splitted[0], new Location(Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2]))));
+								line = br.readLine();
+							}
+						}
+					}
+				}
+			}
+			catch (IOException e)
+			{
+				
+			}
+			finally
+			{
+				br.close();
+			}
+		}
+		catch (IOException e)
+		{
+			
+		}
+	}
+}
