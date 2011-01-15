@@ -16,6 +16,7 @@ import org.bukkit.Arrow;
 import org.bukkit.Block;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Player;
 import org.bukkit.Vector;
 import org.bukkit.event.player.PlayerChatEvent;
@@ -45,6 +46,7 @@ public class ATPListener extends PlayerListener{
 	private Hashtable<Vector, ArrayList<Integer>> hashturrets = new Hashtable<Vector, ArrayList<Integer>>();
 	private tProperties properties = new tProperties("ArrowTurrets" + File.separator + "ArrowTurrets.properties");
 	private Hashtable<Vector, ArrayList<Integer>> turretSeats = new Hashtable<Vector, ArrayList<Integer>>();
+	private tPermissions perms = new tPermissions("ArrowTurrets" + File.separator + "permissions.perms");
 	
 	public ATPListener(ArrowTurrets arrowTurrets) {
 		this.plugin = arrowTurrets;
@@ -100,7 +102,7 @@ public class ATPListener extends PlayerListener{
 		Player player = event.getPlayer();
 		String split[] = event.getMessage().split(" ");
 		
-		if(split[0].equalsIgnoreCase("/delt"))
+		if(split[0].equalsIgnoreCase("/delt") && perms.canPlayerUseCommand(player.getName(), "/delt"))
 		{
 			TargetBlock ab = new TargetBlock(player, 300, 0.3);
 			Block blk = ab.getTargetBlock();
@@ -114,8 +116,9 @@ public class ATPListener extends PlayerListener{
 				else
 					player.sendMessage(atString() + "There is no turret here");*/
 			}
+			event.setCancelled(true);
 		}
-		else if (split[0].equalsIgnoreCase("/addt"))
+		else if (split[0].equalsIgnoreCase("/addt") && perms.canPlayerUseCommand(player.getName(), "/addt"))
 		{
 			TargetBlock ab = new TargetBlock(player, 300, 0.3);
 			Block blk = ab.getTargetBlock();
@@ -143,8 +146,9 @@ public class ATPListener extends PlayerListener{
 			}
 			else
 				player.sendMessage("Target Block is null :/");
+			event.setCancelled(true);
 		}
-		else if (split[0].equalsIgnoreCase("/addts"))
+		else if (split[0].equalsIgnoreCase("/addts") && perms.canPlayerUseCommand(player.getName(), "/addts"))
 		{
 			if (split.length >= 2)
 			{
@@ -158,8 +162,9 @@ public class ATPListener extends PlayerListener{
 			}
 			else
 				player.sendMessage(atString() + "You need to define a turret name!");
+			event.setCancelled(true);
 		}
-		else if (split[0].equalsIgnoreCase("/delts"))
+		else if (split[0].equalsIgnoreCase("/delts") && perms.canPlayerUseCommand(player.getName(), "/delts"))
 		{
 			if (split.length >= 2)
 			{
@@ -167,8 +172,9 @@ public class ATPListener extends PlayerListener{
 			}
 			else
 				player.sendMessage(atString() + "You need to define a turret name!");
+			event.setCancelled(true);
 		}
-		else if (split[0].equalsIgnoreCase("/settn"))
+		else if (split[0].equalsIgnoreCase("/settn") && perms.canPlayerUseCommand(player.getName(), "/settn"))
 		{
 			if (split.length >= 2)
 			{
@@ -182,8 +188,9 @@ public class ATPListener extends PlayerListener{
 			}
 			else
 				player.sendMessage(atString() + "You need to define a turret name!");
+			event.setCancelled(true);
 		}
-		else if (split[0].equalsIgnoreCase("/addta"))
+		else if (split[0].equalsIgnoreCase("/addta") && perms.canPlayerUseCommand(player.getName(), "/addta"))
 		{
 			if (split.length > 1)
 			{
@@ -196,8 +203,9 @@ public class ATPListener extends PlayerListener{
 			}
 			else
 				player.sendMessage(atString() + "You need to define a player");
+			event.setCancelled(true);
 		}
-		else if (split[0].equalsIgnoreCase("/delta"))
+		else if (split[0].equalsIgnoreCase("/delta") && perms.canPlayerUseCommand(player.getName(), "/delta"))
 		{
 			if (split.length > 1)
 			{
@@ -210,8 +218,9 @@ public class ATPListener extends PlayerListener{
 			}
 			else
 				player.sendMessage(atString() + "You need to define a player");
+			event.setCancelled(true);
 		}
-		else if (split[0].equalsIgnoreCase("/addto"))
+		else if (split[0].equalsIgnoreCase("/addto") && perms.canPlayerUseCommand(player.getName(), "/addto"))
 		{
 			if (split.length > 1)
 			{
@@ -224,8 +233,9 @@ public class ATPListener extends PlayerListener{
 			}
 			else
 				player.sendMessage(atString() + "You need to define a player");
+			event.setCancelled(true);
 		}
-		else if (split[0].equalsIgnoreCase("/delto"))
+		else if (split[0].equalsIgnoreCase("/delto") && perms.canPlayerUseCommand(player.getName(), "/delto"))
 		{
 			if (split.length > 1)
 			{
@@ -238,6 +248,7 @@ public class ATPListener extends PlayerListener{
 			}
 			else
 				player.sendMessage(atString() + "You need to define a player");
+			event.setCancelled(true);
 		}
 	}
 
@@ -822,5 +833,9 @@ public class ATPListener extends PlayerListener{
 		{
 			
 		}
+	}
+
+	public tPermissions getPerms() {
+		return perms;
 	}
 }

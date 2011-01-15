@@ -19,20 +19,34 @@ public class ArrowTurrets extends JavaPlugin{
 	    super(pluginLoader, instance, desc, folder, plugin, cLoader);
 	
 	    name = "Arrow turrets";
-	    version = "v1.1.0 (Kleynach)";
+	    version = "v1.1.1 (Kleynach)";
 	    
-	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
-	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_COMMAND, playerListener, Priority.Normal, this);
-	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_ITEM, playerListener, Priority.Normal, this);
-	    
+	    this.initCmds();
 	    playerListener.loadConfig();
+	    playerListener.getPerms().loadPermissions();
+	    playerListener.getPerms().savePermissions();
 	    playerListener.loadTurrets();
 	}
 	
 	public void onEnable()
 	{
-		
+	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
+	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_COMMAND, playerListener, Priority.Normal, this);
+	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_ITEM, playerListener, Priority.Normal, this);
 		System.out.println(name + " " + version + " initialized!");
+	}
+	
+	private void initCmds()
+	{
+		playerListener.getPerms().addCmd("/addt");
+		playerListener.getPerms().addCmd("/delt");
+		playerListener.getPerms().addCmd("/addts");
+		playerListener.getPerms().addCmd("/delts");
+		playerListener.getPerms().addCmd("/settn");
+		playerListener.getPerms().addCmd("/addta");
+		playerListener.getPerms().addCmd("/delta");
+		playerListener.getPerms().addCmd("/addto");
+		playerListener.getPerms().addCmd("/delto");
 	}
 	
 	public void onDisable()
