@@ -18,26 +18,23 @@ public class ArrowTurrets extends JavaPlugin{
 	    super(pluginLoader, instance, desc, plugin, cLoader);
 	
 	    name = "Arrow turrets";
-	    version = "v1.1 (Kleynach)";
+	    version = "v1.1.0 (Kleynach)";
 	    
-	    registerEvents();
 	    playerListener.loadConfig();
 	    playerListener.loadTurrets();
 	}
 	
 	public void onEnable()
 	{
+		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
+		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_COMMAND, playerListener, Priority.Normal, this);
+		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_ITEM, playerListener, Priority.Normal, this);
+
 		System.out.println(name + " " + version + " initialized!");
 	}
 	
 	public void onDisable()
 	{
-		
-	}
-	
-	private void registerEvents() {
-	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
-	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_COMMAND, playerListener, Priority.Normal, this);
-	    getServer().getPluginManager().registerEvent(Event.Type.PLAYER_ITEM, playerListener, Priority.Normal, this);
+		System.out.println(name + " " + version + " disabled.");
 	}
 }
