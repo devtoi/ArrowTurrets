@@ -12,13 +12,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.bukkit.Arrow;
-import org.bukkit.Block;
+import org.bukkit.entity.Arrow;
+import org.bukkit.block.Block;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Player;
-import org.bukkit.Vector;
+import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerItemEvent;
 import org.bukkit.event.player.PlayerListener;
@@ -46,7 +46,7 @@ public class ATPListener extends PlayerListener{
 	private Hashtable<Vector, ArrayList<Integer>> hashturrets = new Hashtable<Vector, ArrayList<Integer>>();
 	private tProperties properties = new tProperties("ArrowTurrets" + File.separator + "ArrowTurrets.properties");
 	private Hashtable<Vector, ArrayList<Integer>> turretSeats = new Hashtable<Vector, ArrayList<Integer>>();
-	private tPermissions perms = new tPermissions("ArrowTurrets" + File.separator + "permissions.perms");
+	private tPermissions perms = new tPermissions("ArrowTurrets" + File.separator + "ArrowTurrets.perms");
 	
 	public ATPListener(ArrowTurrets arrowTurrets) {
 		this.plugin = arrowTurrets;
@@ -325,6 +325,7 @@ public class ATPListener extends PlayerListener{
 					{
 						turret.getAccessors().add(playerToAdd);
 						line = "Added access for player: " + playerToAdd;
+						this.saveTurrets();
 					}
 					else
 						line = "Player already have access to this turret";
@@ -353,6 +354,7 @@ public class ATPListener extends PlayerListener{
 					{
 						turret.getAccessors().add(playerToDel);
 						line = "Removed access for player: " + playerToDel;
+						this.saveTurrets();
 					}
 					else
 						line = "Player doesn't have access to this turret";
@@ -381,6 +383,7 @@ public class ATPListener extends PlayerListener{
 					{
 						turret.getOwners().add(playerToAdd);
 						line = "Added owner: " + playerToAdd;
+						this.saveTurrets();
 					}
 					else
 						line = "Player already is an owner";
@@ -409,6 +412,7 @@ public class ATPListener extends PlayerListener{
 					{
 						turret.getOwners().add(playerToDel);
 						line = "Removed owner: " + playerToDel;
+						this.saveTurrets();
 					}
 					else
 						line = "Player isn't an owner";
@@ -444,7 +448,6 @@ public class ATPListener extends PlayerListener{
 							{
 								seatIds.addAll(this.turretSeats.get(loc.toVector()));
 								this.turretSeats.put(loc.toVector(), seatIds);
-								System.out.println("Put down a seat at " + loc.toString());
 							}
 							else
 							{
@@ -452,6 +455,7 @@ public class ATPListener extends PlayerListener{
 								System.out.println("Put down a seat at " + loc.toString());
 							}
 						}
+						this.saveTurrets();
 						return "You set the turret seat for the " + turretName + " turret";
 					}
 					else
@@ -473,6 +477,7 @@ public class ATPListener extends PlayerListener{
 				if (turret.getOwners().contains(playerName))
 				{
 					turret.setUsingSeat(false);
+					this.saveTurrets();
 					return "You deleted the seat for the turret " + turretName;
 				}
 					
@@ -512,6 +517,7 @@ public class ATPListener extends PlayerListener{
 			if (isPlayerOwner)
 			{
 				this.turrets.get(index).setName(turretName);
+				this.saveTurrets();
 				return "The turret is now called " + turretName;
 			}
 			else
