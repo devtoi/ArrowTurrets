@@ -15,8 +15,8 @@ public class ArrowTurrets extends JavaPlugin{
 	private String version;
 	private final ATPListener playerListener = new ATPListener(this);
 	
-	public ArrowTurrets(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
-	    super(pluginLoader, instance, desc, folder, plugin, cLoader);
+	public ArrowTurrets()
+	{
 	
 	    name = "Arrow turrets";
 	    version = "v1.2.0 (Krathlak)";
@@ -52,5 +52,10 @@ public class ArrowTurrets extends JavaPlugin{
 	public void onDisable()
 	{
 		
+	}
+
+	public void onLoad()
+	{
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }
