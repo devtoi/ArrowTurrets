@@ -42,7 +42,6 @@ public class ATPListener extends PlayerListener{
 	public long delay = 500;
 	public boolean useHash = true;
 	public Map<Vector, ArrayList<Integer>> hashturrets = Collections.synchronizedMap(new HashMap<Vector, ArrayList<Integer>>());
-	public tProperties properties = new tProperties("ArrowTurrets" + File.separator + "ArrowTurrets.properties");
 	public Map<Vector, ArrayList<Integer>> turretSeats = Collections.synchronizedMap(new HashMap<Vector, ArrayList<Integer>>());
 
 	
@@ -510,14 +509,7 @@ public class ATPListener extends PlayerListener{
 	
 	public void loadConfig()
 	{
-		try{
-			this.properties.load();
-			System.out.println("[ArrowTurrets] " + "Config loaded!");
-		}
-		catch (IOException ioe){
-			ioe.printStackTrace();
-			System.out.println("[ArrowTurrets] " + "Failed to load config!");
-		}
+		
 		
 		atItemId = properties.getInt("item-id", 288);
 		this.numberOfArrows = properties.getInt("number-of-arrows", 1);

@@ -1,7 +1,12 @@
 package com.toi.arrowturrets;
 
 import com.nijikokun.bukkit.Permissions.Permissions;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.anjocaido.groupmanager.GroupManager;
@@ -14,6 +19,9 @@ import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.config.Configuration;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 
 public class ArrowTurrets extends JavaPlugin
@@ -22,6 +30,9 @@ public class ArrowTurrets extends JavaPlugin
 	private String version;
 	private final ATPListener playerListener = new ATPListener(this);
 	private static final Logger logger = Logger.getLogger("Minecraft");
+	private static Yaml yaml = new Yaml(new SafeConstructor());
+	public Configuration config = null;
+	public HashMap<Player, Double> timeLimit = new HashMap<Player, Double>();
 	Plugin permPlugin = null;
 	Boolean isGm = false;
 
@@ -263,5 +274,38 @@ public class ArrowTurrets extends JavaPlugin
 			Permissions pm = (Permissions)permPlugin;
 			return pm.getHandler().has(base, node);
 		}
+	}
+
+public void LoadSettings() throws Exception
+	{
+		if (!this.getDataFolder().exists())
+		{
+			this.getDataFolder().mkdirs();
+		}
+		File arrows = new File(this.getDataFolder(), "ArrowTurrets.yml");
+		if (!arrows.exists()) arrows.createNewFile();
+		config = new Configuration(arrows);
+		Map<String, Object> data = (Map<String, Object>)yaml.load(new FileReader(arrows));
+		if (data == null)
+		{
+			logger.info("[ArrowTurrets] Generating ArrowTurrets config file.");
+			data = new HashMap<String, Object>();
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("item-id", 288);
+			map.put("number-of-arrows", 1);
+			map.put("speed", 1.0);
+			map.put("y-distance", 5);
+			map.put("delay", 500);
+			map.put("spread", 7.0);
+			map.put("z-distance", 5);
+			map.put("use-hash", true);
+			map.put("x-distance", 5);
+			data.put("arrowturrets", map);
+			FileWriter tx = new FileWriter(arrows);
+			tx.write(yaml.dump(data));
+			tx.flush();
+			tx.close();
+		}
+		config.load();
 	}
 }
