@@ -44,7 +44,7 @@ public class ATPListener extends PlayerListener{
 	public Map<Vector, ArrayList<Integer>> hashturrets = Collections.synchronizedMap(new HashMap<Vector, ArrayList<Integer>>());
 	public tProperties properties = new tProperties("ArrowTurrets" + File.separator + "ArrowTurrets.properties");
 	public Map<Vector, ArrayList<Integer>> turretSeats = Collections.synchronizedMap(new HashMap<Vector, ArrayList<Integer>>());
-	public tPermissions perms = new tPermissions("ArrowTurrets" + File.separator + "ArrowTurrets.perms");
+
 	
 	public ATPListener(ArrowTurrets arrowTurrets) {
 		this.plugin = arrowTurrets;
@@ -686,9 +686,5 @@ public class ATPListener extends PlayerListener{
 		{
 			
 		}
-	}
-
-	public tPermissions getPerms() {
-		return perms;
 	}
 }

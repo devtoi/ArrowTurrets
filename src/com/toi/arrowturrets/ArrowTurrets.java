@@ -1,6 +1,10 @@
 package com.toi.arrowturrets;
 
+import com.nijikokun.bukkit.Permissions.Permissions;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.anjocaido.groupmanager.GroupManager;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
@@ -8,6 +12,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 
@@ -16,6 +21,9 @@ public class ArrowTurrets extends JavaPlugin
 	private String name;
 	private String version;
 	private final ATPListener playerListener = new ATPListener(this);
+	private static final Logger logger = Logger.getLogger("Minecraft");
+	Plugin permPlugin = null;
+	Boolean isGm = false;
 
 	public ArrowTurrets()
 	{
@@ -27,9 +35,34 @@ public class ArrowTurrets extends JavaPlugin
 	{
 		name = this.getDescription().getName();
 		version = this.getDescription().getVersion();
+		permPlugin = this.getServer().getPluginManager().getPlugin("GroupManager");
+		if (permPlugin != null)
+		{
+			if (!this.getServer().getPluginManager().isPluginEnabled(permPlugin))
+			{
+				this.getServer().getPluginManager().enablePlugin(permPlugin);
+			}
+			logger.log(Level.INFO, "[ArrowTurrets] Found GroupManager. Using it for permissions");
+			isGm = true;
+		}
+		else
+		{
+			permPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
+
+			if (permPlugin != null)
+			{
+				if (!this.getServer().getPluginManager().isPluginEnabled(permPlugin))
+				{
+					this.getServer().getPluginManager().enablePlugin(permPlugin);
+				}
+				logger.log(Level.INFO, "[ArrowTurrets] Found Permissions. Using it for permissions");
+			}
+			else
+			{
+				logger.log(Level.INFO, "[ArrowTurrets] Permissions plugins not found, defaulting to OPS.txt");
+			}
+		}
 		playerListener.loadConfig();
-		playerListener.getPerms().loadPermissions();
-		playerListener.getPerms().savePermissions();
 		playerListener.loadTurrets();
 		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
 		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_ITEM, playerListener, Priority.Normal, this);
@@ -43,6 +76,7 @@ public class ArrowTurrets extends JavaPlugin
 	@Override
 	public void onLoad()
 	{
+
 	}
 
 	@Override
@@ -54,7 +88,7 @@ public class ArrowTurrets extends JavaPlugin
 			Player player = (Player)sender;
 
 
-			if (commandLabel.equalsIgnoreCase("/delt") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delt"))
+			if (commandLabel.equalsIgnoreCase("delt") && hasPermission(player, "arrowturrets.delt"))
 			{
 				TargetBlock ab = new TargetBlock(player, 300, 0.3);
 				Block blk = ab.getTargetBlock();
@@ -70,7 +104,7 @@ public class ArrowTurrets extends JavaPlugin
 				}
 				return true;
 			}
-			else if (commandLabel.equalsIgnoreCase("/addt") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addt"))
+			else if (commandLabel.equalsIgnoreCase("addt") && hasPermission(player, "arrowturrets.addt"))
 			{
 				TargetBlock ab = new TargetBlock(player, 300, 0.3);
 				Block blk = ab.getTargetBlock();
@@ -102,7 +136,7 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage("Target Block is null :/");
 				return true;
 			}
-			else if (commandLabel.equalsIgnoreCase("/addts") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addts"))
+			else if (commandLabel.equalsIgnoreCase("addts") && hasPermission(player, "arrowturrets.addts"))
 			{
 				if (args.length != 0)
 				{
@@ -119,7 +153,7 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a turret name!");
 				return true;
 			}
-			else if (commandLabel.equalsIgnoreCase("/delts") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delts"))
+			else if (commandLabel.equalsIgnoreCase("delts") && hasPermission(player, "arrowturrets.delts"))
 			{
 				if (args.length != 0)
 				{
@@ -130,7 +164,7 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a turret name!");
 				return true;
 			}
-			else if (commandLabel.equalsIgnoreCase("/settn") && playerListener.perms.canPlayerUseCommand(player.getName(), "/settn"))
+			else if (commandLabel.equalsIgnoreCase("settn") && hasPermission(player, "arrowturrets.settn"))
 			{
 				if (args.length !=0)
 				{
@@ -147,7 +181,7 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a turret name!");
 				return true;
 			}
-			else if (commandLabel.equalsIgnoreCase("/addta") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addta"))
+			else if (commandLabel.equalsIgnoreCase("addta") && hasPermission(player, "arrowturrets.addta"))
 			{
 				if (args.length != 0)
 				{
@@ -163,7 +197,7 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a player");
 				return true;
 			}
-			else if (commandLabel.equalsIgnoreCase("/delta") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delta"))
+			else if (commandLabel.equalsIgnoreCase("delta") && hasPermission(player, "arrowturrets.delta"))
 			{
 				if (args.length != 0)
 				{
@@ -179,7 +213,7 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a player");
 				return true;
 			}
-			else if (commandLabel.equalsIgnoreCase("/addto") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addto"))
+			else if (commandLabel.equalsIgnoreCase("addto") && hasPermission(player, "arrowturrets.addto"))
 			{
 				if (args.length != 0)
 				{
@@ -195,7 +229,7 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a player");
 				return true;
 			}
-			else if (commandLabel.equalsIgnoreCase("/delto") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delto"))
+			else if (commandLabel.equalsIgnoreCase("delto") && hasPermission(player, "arrowturrets.delto"))
 			{
 				if (args.length != 0)
 				{
@@ -213,5 +247,21 @@ public class ArrowTurrets extends JavaPlugin
 			}
 		}
 		return false;
+	}
+	public Boolean hasPermission(Player base, String node)
+	{
+		if (permPlugin == null && base.isOp())
+			return true;
+		if (isGm)
+		{
+			GroupManager gm = (GroupManager)permPlugin;
+			return gm.getWorldsHolder().getWorldPermissions(base).has(base, node);
+
+		}
+		else
+		{
+			Permissions pm = (Permissions)permPlugin;
+			return pm.getHandler().has(base, node);
+		}
 	}
 }
