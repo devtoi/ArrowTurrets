@@ -1,3 +1,31 @@
 name: ArrowTurrets
 main: com.toi.arrowturrets.ArrowTurrets
-version: 1.0
+version: 1.2
+commands:
+  addt:
+    description: Adds a turret
+    usage: /<command>
+  delt:
+    desription: Deletes a turret
+    usage: /<command>
+  addto:
+    description: Adds an owner to a turret
+    usage: /<command> [name]
+  delto:
+    description: Deletes an owner of a turret
+    usage: /<command> [name]
+  addta:
+    description: Adds an accessor to a turret
+    usage: /<command> [name]
+  delta:
+    description: Deletes an accessor of a turret
+    usage: /<command> [name]
+  settn:
+    description: names the turret you are aiming at
+    usage: /<command> [turretname]
+  addts:
+    description: sets the turrets seat where you are aiming
+    usage: /<command> [turretname]
+  delts:
+    description: deletes a turret seat
+    usage: /<command> [turretname]
