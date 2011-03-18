@@ -23,7 +23,7 @@ public class ArrowTurrets extends JavaPlugin
 		name = this.getDescription().getName();
 		version = this.getDescription().getVersion();
 
-		this.initCmds();
+	
 		playerListener.loadConfig();
 		playerListener.getPerms().loadPermissions();
 		playerListener.getPerms().savePermissions();
@@ -35,19 +35,6 @@ public class ArrowTurrets extends JavaPlugin
 		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
 		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_ITEM, playerListener, Priority.Normal, this);
 		System.out.println(name + " " + version + " initialized!");
-	}
-
-	private void initCmds()
-	{
-		playerListener.getPerms().addCmd("/addt");
-		playerListener.getPerms().addCmd("/delt");
-		playerListener.getPerms().addCmd("/addts");
-		playerListener.getPerms().addCmd("/delts");
-		playerListener.getPerms().addCmd("/settn");
-		playerListener.getPerms().addCmd("/addta");
-		playerListener.getPerms().addCmd("/delta");
-		playerListener.getPerms().addCmd("/addto");
-		playerListener.getPerms().addCmd("/delto");
 	}
 
 	public void onDisable()
@@ -68,7 +55,7 @@ public class ArrowTurrets extends JavaPlugin
 			Player player = (Player)sender;
 
 
-			if (args[0].equalsIgnoreCase("/delt") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delt"))
+			if (commandLabel.equalsIgnoreCase("/delt") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delt"))
 			{
 				TargetBlock ab = new TargetBlock(player, 300, 0.3);
 				Block blk = ab.getTargetBlock();
@@ -84,7 +71,7 @@ public class ArrowTurrets extends JavaPlugin
 				}
 				return true;
 			}
-			else if (args[0].equalsIgnoreCase("/addt") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addt"))
+			else if (commandLabel.equalsIgnoreCase("/addt") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addt"))
 			{
 				TargetBlock ab = new TargetBlock(player, 300, 0.3);
 				Block blk = ab.getTargetBlock();
@@ -94,8 +81,8 @@ public class ArrowTurrets extends JavaPlugin
 					if (!playerListener.turretExists(tl))
 					{
 						String tname = "";
-						if (args.length >= 2)
-							tname = args[1];
+						if (args.length != 0)
+							tname = args[0];
 						if (playerListener.useHash)
 						{
 							ArrayList<String> owners = new ArrayList<String>();
@@ -116,16 +103,16 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage("Target Block is null :/");
 				return true;
 			}
-			else if (args[0].equalsIgnoreCase("/addts") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addts"))
+			else if (commandLabel.equalsIgnoreCase("/addts") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addts"))
 			{
-				if (args.length >= 2)
+				if (args.length != 0)
 				{
 					TargetBlock ab = new TargetBlock(player, 300, 0.3);
 					Block blk = ab.getTargetBlock();
 					if (blk != null)
 					{
 						Location tl = new Location(player.getWorld(), blk.getX(), blk.getY(), blk.getZ());
-						player.sendMessage(playerListener.atString() + playerListener.addTurretSeat(player.getName(), args[1], tl));
+						player.sendMessage(playerListener.atString() + playerListener.addTurretSeat(player.getName(), args[0], tl));
 						return true;
 					}
 				}
@@ -133,27 +120,27 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a turret name!");
 				return true;
 			}
-			else if (args[0].equalsIgnoreCase("/delts") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delts"))
+			else if (commandLabel.equalsIgnoreCase("/delts") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delts"))
 			{
-				if (args.length >= 2)
+				if (args.length != 0)
 				{
-					player.sendMessage(playerListener.atString() + playerListener.delTurretSeat(player.getName(), args[1]));
+					player.sendMessage(playerListener.atString() + playerListener.delTurretSeat(player.getName(), args[0]));
 					return true;
 				}
 				else
 					player.sendMessage(playerListener.atString() + "You need to define a turret name!");
 				return true;
 			}
-			else if (args[0].equalsIgnoreCase("/settn") && playerListener.perms.canPlayerUseCommand(player.getName(), "/settn"))
+			else if (commandLabel.equalsIgnoreCase("/settn") && playerListener.perms.canPlayerUseCommand(player.getName(), "/settn"))
 			{
-				if (args.length >= 2)
+				if (args.length !=0)
 				{
 					TargetBlock ab = new TargetBlock(player, 300, 0.3);
 					Block blk = ab.getTargetBlock();
 					if (blk != null)
 					{
 						Location tl = new Location(player.getWorld(), blk.getX(), blk.getY(), blk.getZ());
-						player.sendMessage(playerListener.atString() + playerListener.setTurretName(player.getName(), args[1], tl));
+						player.sendMessage(playerListener.atString() + playerListener.setTurretName(player.getName(), args[0], tl));
 						return true;
 					}
 				}
@@ -161,15 +148,15 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a turret name!");
 				return true;
 			}
-			else if (args[0].equalsIgnoreCase("/addta") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addta"))
+			else if (commandLabel.equalsIgnoreCase("/addta") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addta"))
 			{
-				if (args.length > 1)
+				if (args.length != 0)
 				{
 					TargetBlock ab = new TargetBlock(player, 300, 0.3);
 					Block blk = ab.getTargetBlock();
 					if (blk != null)
 					{
-						player.sendMessage(playerListener.atString() + playerListener.addAccess(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), args[1]));
+						player.sendMessage(playerListener.atString() + playerListener.addAccess(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), args[0]));
 						return true;
 					}
 				}
@@ -177,15 +164,15 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a player");
 				return true;
 			}
-			else if (args[0].equalsIgnoreCase("/delta") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delta"))
+			else if (commandLabel.equalsIgnoreCase("/delta") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delta"))
 			{
-				if (args.length > 1)
+				if (args.length != 0)
 				{
 					TargetBlock ab = new TargetBlock(player, 300, 0.3);
 					Block blk = ab.getTargetBlock();
 					if (blk != null)
 					{
-						player.sendMessage(playerListener.atString() + playerListener.removeAccess(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), args[1]));
+						player.sendMessage(playerListener.atString() + playerListener.removeAccess(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), args[0]));
 						return true;
 					}
 				}
@@ -193,15 +180,15 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a player");
 				return true;
 			}
-			else if (args[0].equalsIgnoreCase("/addto") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addto"))
+			else if (commandLabel.equalsIgnoreCase("/addto") && playerListener.perms.canPlayerUseCommand(player.getName(), "/addto"))
 			{
-				if (args.length > 1)
+				if (args.length != 0)
 				{
 					TargetBlock ab = new TargetBlock(player, 300, 0.3);
 					Block blk = ab.getTargetBlock();
 					if (blk != null)
 					{
-						player.sendMessage(playerListener.atString() + playerListener.addOwner(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), args[1]));
+						player.sendMessage(playerListener.atString() + playerListener.addOwner(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), args[0]));
 						return true;
 					}
 				}
@@ -209,15 +196,15 @@ public class ArrowTurrets extends JavaPlugin
 					player.sendMessage(playerListener.atString() + "You need to define a player");
 				return true;
 			}
-			else if (args[0].equalsIgnoreCase("/delto") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delto"))
+			else if (commandLabel.equalsIgnoreCase("/delto") && playerListener.perms.canPlayerUseCommand(player.getName(), "/delto"))
 			{
-				if (args.length > 1)
+				if (args.length != 0)
 				{
 					TargetBlock ab = new TargetBlock(player, 300, 0.3);
 					Block blk = ab.getTargetBlock();
 					if (blk != null)
 					{
-						player.sendMessage(playerListener.atString() + playerListener.delOwner(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), args[1]));
+						player.sendMessage(playerListener.atString() + playerListener.delOwner(new Location(blk.getWorld(), blk.getX(), blk.getY(), blk.getZ()), player.getName(), args[0]));
 						return true;
 					}
 				}
