@@ -21,12 +21,11 @@ import org.bukkit.util.Vector;
 import org.bukkit.event.player.PlayerItemEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.plugin.Plugin;
 
 
 public class ATPListener extends PlayerListener{
 
-	Plugin plugin;
+	public ArrowTurrets arrTurret = null;
 	public ArrayList<Turret> turrets = new ArrayList<Turret>();
 	public float speed = 1.0F;
     public float spread = 7.0F;
@@ -46,7 +45,7 @@ public class ATPListener extends PlayerListener{
 
 	
 	public ATPListener(ArrowTurrets arrowTurrets) {
-		this.plugin = arrowTurrets;
+		this.arrTurret = arrowTurrets;
 	}
 	
 	public void activateSchedule()
@@ -509,19 +508,16 @@ public class ATPListener extends PlayerListener{
 	
 	public void loadConfig()
 	{
-		
-		
-		atItemId = properties.getInt("item-id", 288);
-		this.numberOfArrows = properties.getInt("number-of-arrows", 1);
-		this.speed = properties.getFloat("speed", 1.0F);
-		this.spread = properties.getFloat("spread", 7.0F);
-		this.delay = properties.getLong("delay", 500L);
-		this.xDis = properties.getInt("x-distance", 5);
-		this.yDis = properties.getInt("y-distance", 5);
-		this.zDis = properties.getInt("z-distance", 5);
-		this.turretsFilePath = properties.getString("turrets-filepath", "ArrowTurrets" + File.separator + "ArrowTurrets.txt");
-		this.useHash = properties.getBoolean("use-hash", true);
-		properties.save();
+		this.atItemId = arrTurret.config.getInt("item-id", 288);
+		this.numberOfArrows = arrTurret.config.getInt("number-of-arrows", 1);
+		this.speed = (float)arrTurret.config.getDouble("speed", 1.0F);
+		this.spread = (float)arrTurret.config.getDouble("spread", 7.0F);
+		this.delay = (long)arrTurret.config.getInt("delay", 500);
+		this.xDis = arrTurret.config.getInt("x-distance", 5);
+		this.yDis = arrTurret.config.getInt("y-distance", 5);
+		this.zDis = arrTurret.config.getInt("z-distance", 5);
+		this.turretsFilePath = arrTurret.config.getString("turrets-filepath", "ArrowTurrets" + File.separator + "ArrowTurrets.txt");
+		this.useHash = arrTurret.config.getBoolean("use-hash", true);
 	}
 	
 	public void saveTurrets()
@@ -632,15 +628,15 @@ public class ATPListener extends PlayerListener{
 									{
 										this.addTurret(
 												name,
-												new Location(this.plugin.getServer().getWorlds().get(0), Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])),
-												new Location(this.plugin.getServer().getWorlds().get(0), Float.valueOf(seatLoc[0]), Float.valueOf(seatLoc[1]), Float.valueOf(seatLoc[2])),
+												new Location(this.arrTurret.getServer().getWorlds().get(0), Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])),
+												new Location(this.arrTurret.getServer().getWorlds().get(0), Float.valueOf(seatLoc[0]), Float.valueOf(seatLoc[1]), Float.valueOf(seatLoc[2])),
 												new ArrayList<String>(Arrays.asList(owners)),
 												new ArrayList<String>(Arrays.asList(accessors)));
 									}
 									else
 										this.addTurret(
 												name,
-												new Location(this.plugin.getServer().getWorlds().get(0), Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])),
+												new Location(this.arrTurret.getServer().getWorlds().get(0), Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])),
 												null,
 												new ArrayList<String>(Arrays.asList(owners)),
 												new ArrayList<String>(Arrays.asList(accessors)));
@@ -649,12 +645,12 @@ public class ATPListener extends PlayerListener{
 								{
 									Turret trt = new Turret(new ArrayList<String>(Arrays.asList(owners)),
 											new ArrayList<String>(Arrays.asList(accessors)),
-											new Location(this.plugin.getServer().getWorlds().get(0), Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])));
+											new Location(this.arrTurret.getServer().getWorlds().get(0), Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])));
 									if (!name.equals(""))
 										trt.setName(name);
 									if (seatLoc.length == 3)
 									{
-										trt.setSeatLoc(new Location(this.plugin.getServer().getWorlds().get(0), Float.valueOf(seatLoc[0]), Float.valueOf(seatLoc[1]), Float.valueOf(seatLoc[2])));
+										trt.setSeatLoc(new Location(this.arrTurret.getServer().getWorlds().get(0), Float.valueOf(seatLoc[0]), Float.valueOf(seatLoc[1]), Float.valueOf(seatLoc[2])));
 										trt.setUsingSeat(true);
 									}
 									this.turrets.add(trt);

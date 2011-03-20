@@ -73,11 +73,19 @@ public class ArrowTurrets extends JavaPlugin
 				logger.log(Level.INFO, "[ArrowTurrets] Permissions plugins not found, defaulting to OPS.txt");
 			}
 		}
+		try
+		{
+		LoadSettings();
+		}
+		catch (Throwable e)
+		{
+			logger.log(Level.SEVERE, "Could not load settings from config", e);
+		}
 		playerListener.loadConfig();
 		playerListener.loadTurrets();
 		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
 		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_ITEM, playerListener, Priority.Normal, this);
-		System.out.println(name + " " + version + " initialized!");
+		logger.info(name + " " + version + " initialized!");
 	}
 
 	public void onDisable()
@@ -93,7 +101,6 @@ public class ArrowTurrets extends JavaPlugin
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args)
 	{
-
 		if (sender instanceof Player)
 		{
 			Player player = (Player)sender;
@@ -257,7 +264,7 @@ public class ArrowTurrets extends JavaPlugin
 				return true;
 			}
 		}
-		return false;
+		return true;
 	}
 	public Boolean hasPermission(Player base, String node)
 	{
