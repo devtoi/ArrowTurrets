@@ -34,8 +34,7 @@ public class ATPListener extends PlayerListener{
 	public int zDis = 5;
 	public int numberOfArrows = 2;
 	private int atItemId = 262;
-	public File atdir = new File("ArrowTurrets");
-	public String turretsFilePath = atdir.getPath() + File.separator + "ArrowTurrets.txt";
+	public String turretsFilePath;
 	public ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 	public boolean execIsActivated = false;
 	public long delay = 500;
@@ -516,7 +515,7 @@ public class ATPListener extends PlayerListener{
 		this.xDis = arrTurret.config.getInt("x-distance", 5);
 		this.yDis = arrTurret.config.getInt("y-distance", 5);
 		this.zDis = arrTurret.config.getInt("z-distance", 5);
-		this.turretsFilePath = arrTurret.config.getString("turrets-filepath", "ArrowTurrets" + File.separator + "ArrowTurrets.txt");
+		this.turretsFilePath = arrTurret.getDataFolder() + File.separator + "ArrowTurrets.txt";
 		this.useHash = arrTurret.config.getBoolean("use-hash", true);
 	}
 	
@@ -525,10 +524,10 @@ public class ATPListener extends PlayerListener{
 		try
 		{
 			BufferedWriter bw = new BufferedWriter(new FileWriter(this.turretsFilePath));
-			if (!this.atdir.exists())
+			if (!this.arrTurret.getDataFolder().exists())
 			{
 				System.out.println("[ArrowTurrets] Could not find ArrowTurrets directory!");
-				if (atdir.mkdir())
+				if (arrTurret.getDataFolder().mkdirs())
 					System.out.println("[ArrowTurrets] ArrowTurrets directory created!");
 				else
 					System.out.println("[ArrowTurrets] Failed to create ArrowTurrets directory!");
