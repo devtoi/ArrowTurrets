@@ -1,4 +1,5 @@
 package com.toi.arrowturrets;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,18 +18,19 @@ import org.bukkit.block.Block;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.util.Vector;
-import org.bukkit.event.player.PlayerItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 
-public class ATPListener extends PlayerListener{
-
+public class ATPListener extends PlayerListener
+{
 	public ArrowTurrets arrTurret = null;
 	public ArrayList<Turret> turrets = new ArrayList<Turret>();
 	public float speed = 1.0F;
-    public float spread = 7.0F;
+	public float spread = 7.0F;
 	public int xDis = 5;
 	public int yDis = 5;
 	public int zDis = 5;
@@ -42,18 +44,20 @@ public class ATPListener extends PlayerListener{
 	public Map<Vector, ArrayList<Integer>> hashturrets = Collections.synchronizedMap(new HashMap<Vector, ArrayList<Integer>>());
 	public Map<Vector, ArrayList<Integer>> turretSeats = Collections.synchronizedMap(new HashMap<Vector, ArrayList<Integer>>());
 
-	
-	public ATPListener(ArrowTurrets arrowTurrets) {
+	public ATPListener(ArrowTurrets arrowTurrets)
+	{
 		this.arrTurret = arrowTurrets;
 	}
-	
+
 	public void activateSchedule()
 	{
 		if (!execIsActivated)
 		{
-			executor.schedule(new Runnable(){
+			executor.schedule(new Runnable()
+			{
 				@Override
-				public void run() {
+				public void run()
+				{
 					for (Turret turret : turrets)
 					{
 						turret.setCanShoot(true);
@@ -64,37 +68,38 @@ public class ATPListener extends PlayerListener{
 			this.execIsActivated = true;
 		}
 	}
-	
+
 	@Override
-	public void onPlayerItem(PlayerItemEvent event)
+	public void onPlayerInteract(PlayerInteractEvent event)
 	{
-		Player player = event.getPlayer();
-		Location pl = new Location(player.getWorld(),
-				Math.floor(player.getLocation().getX() + 0.5),
-				Math.floor(player.getLocation().getY() + 0.5),
-				Math.floor(player.getLocation().getZ() + 0.3));
+		if(event.isCancelled())return;
 		
-		if (this.turretSeats.containsKey(pl.toVector()))
-		{
-			ArrayList<Integer> tir = this.turretSeats.get(pl.toVector());
-			TargetBlock ab = new TargetBlock(player, 300, 0.3);
-			Block blk = ab.getTargetBlock();
-			if (blk != null)
+		Player player = event.getPlayer();
+		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+
+			Location pl = new Location(player.getWorld(),
+									   Math.floor(player.getLocation().getX() + 0.5),
+									   Math.floor(player.getLocation().getY() + 0.5),
+									   Math.floor(player.getLocation().getZ() + 0.3));
+
+			if (this.turretSeats.containsKey(pl.toVector()))
 			{
-				Location targetLoc = new Location(player.getWorld(), blk.getX() + 0.5, blk.getY() + 0.5, blk.getZ() + 0.5);
-				
-				for (Integer t : tir)
+				ArrayList<Integer> tir = this.turretSeats.get(pl.toVector());
+				TargetBlock ab = new TargetBlock(player, 300, 0.3);
+				Block blk = ab.getTargetBlock();
+				if (blk != null)
 				{
-					Vector shooter = this.turrets.get(t).getLoc().toVector();
-					shooter = new Vector(shooter.getX() + 0.5, shooter.getY() + 0.5, shooter.getZ() + 0.5);
-					shoot(player, this.speed, this.spread, targetLoc, shooter);
+					Location targetLoc = new Location(player.getWorld(), blk.getX() + 0.5, blk.getY() + 0.5, blk.getZ() + 0.5);
+
+					for (Integer t : tir)
+					{
+						Vector shooter = this.turrets.get(t).getLoc().toVector();
+						shooter = new Vector(shooter.getX() + 0.5, shooter.getY() + 0.5, shooter.getZ() + 0.5);
+						shoot(player, this.speed, this.spread, targetLoc, shooter);
+					}
 				}
 			}
-		}
 	}
-	
-	
-
 	public boolean turretExists(Location loc)
 	{
 		for (Turret turret : this.turrets)
@@ -104,10 +109,10 @@ public class ATPListener extends PlayerListener{
 		}
 		return false;
 	}
-	
+
 	public void addTurret(String name, Location loc, Location seatLoc, ArrayList<String> owners, ArrayList<String> accessors)
 	{
-		Turret trtToAdd = new Turret(owners, accessors, loc); 
+		Turret trtToAdd = new Turret(owners, accessors, loc);
 		if (!name.equals(""))
 			trtToAdd.setName(name);
 		if (seatLoc != null)
@@ -116,11 +121,11 @@ public class ATPListener extends PlayerListener{
 			trtToAdd.setUsingSeat(true);
 		}
 		this.turrets.add(trtToAdd);
-        int turret_id = this.turrets.size() - 1; // Index in list.
-	    // Add the current turret id to our collection
-        ArrayList<Integer> turret_current_id_list = new ArrayList<Integer>();
-        turret_current_id_list.add(turret_id);
-		
+		int turret_id = this.turrets.size() - 1; // Index in list.
+		// Add the current turret id to our collection
+		ArrayList<Integer> turret_current_id_list = new ArrayList<Integer>();
+		turret_current_id_list.add(turret_id);
+
 		int cx = loc.getBlockX() - this.xDis;
 		int cy = loc.getBlockY() - this.yDis;
 		int cz = loc.getBlockZ() - this.zDis;
@@ -132,29 +137,29 @@ public class ATPListener extends PlayerListener{
 				{
 					Vector cBlock = new Vector(cx + x, cy + y, cz + z);
 					ArrayList<Integer> turrets_covering_location = new ArrayList<Integer>();
-                    // get scan data from scan data collection.
-                    turrets_covering_location = this.hashturrets.get(cBlock);
+					// get scan data from scan data collection.
+					turrets_covering_location = this.hashturrets.get(cBlock);
 
-                    if(turrets_covering_location == null)
-                    {
-                        // No other turrets cover this location. Add the list as-is
-                        // the only the current turret
-                    	hashturrets.put(cBlock, turret_current_id_list);
-                    }
-                    else
-                    {
-                        // Other turrets are in range.. add the current turret to it.
-                        turrets_covering_location.add(turret_id);
-                    	//hashturrets.remove(cBlock);
-                    	hashturrets.put(cBlock, turrets_covering_location);
-                    }
-                    cBlock = null;
+					if (turrets_covering_location == null)
+					{
+						// No other turrets cover this location. Add the list as-is
+						// the only the current turret
+						hashturrets.put(cBlock, turret_current_id_list);
+					}
+					else
+					{
+						// Other turrets are in range.. add the current turret to it.
+						turrets_covering_location.add(turret_id);
+						//hashturrets.remove(cBlock);
+						hashturrets.put(cBlock, turrets_covering_location);
+					}
+					cBlock = null;
 				}
 			}
 		}
 		this.saveTurrets();
 	}
-	
+
 	public String addAccess(Location loc, String playerName, String playerToAdd)
 	{
 		String line = "There is no turret here";
@@ -183,7 +188,7 @@ public class ATPListener extends PlayerListener{
 		}
 		return line;
 	}
-	
+
 	public String removeAccess(Location loc, String playerName, String playerToDel)
 	{
 		String line = "There is no turret here";
@@ -212,7 +217,7 @@ public class ATPListener extends PlayerListener{
 		}
 		return line;
 	}
-	
+
 	public String addOwner(Location loc, String playerName, String playerToAdd)
 	{
 		String line = "There is no turret here";
@@ -241,8 +246,8 @@ public class ATPListener extends PlayerListener{
 		}
 		return line;
 	}
-	
-	public String delOwner (Location loc, String playerName, String playerToDel)
+
+	public String delOwner(Location loc, String playerName, String playerToDel)
 	{
 		String line = "There is no turret here";
 		for (Turret turret : this.turrets)
@@ -270,8 +275,8 @@ public class ATPListener extends PlayerListener{
 		}
 		return line;
 	}
-	
-	public String addTurretSeat (String playerName, String turretName, Location loc)
+
+	public String addTurretSeat(String playerName, String turretName, Location loc)
 	{
 		for (int i = 0; i < this.turrets.size(); i++)
 		{
@@ -310,8 +315,8 @@ public class ATPListener extends PlayerListener{
 		}
 		return "There is no turret by that name!";
 	}
-	
-	public String delTurretSeat (String playerName, String turretName)
+
+	public String delTurretSeat(String playerName, String turretName)
 	{
 		for (Turret turret : this.turrets)
 		{
@@ -323,13 +328,13 @@ public class ATPListener extends PlayerListener{
 					this.saveTurrets();
 					return "You deleted the seat for the turret " + turretName;
 				}
-					
+
 				break;
 			}
 		}
 		return "There is no turret by the name " + turretName;
 	}
-	
+
 	public String setTurretName(String playerName, String turretName, Location loc)
 	{
 		int index = -1;
@@ -373,17 +378,17 @@ public class ATPListener extends PlayerListener{
 		else
 			return "There is no turret here!";
 	}
-	
+
 	public String atString()
 	{
-		return ChatColor.AQUA + "[ArrowTurrets] " + ChatColor.YELLOW; 
+		return ChatColor.AQUA + "[ArrowTurrets] " + ChatColor.YELLOW;
 	}
-	
+
 	@Override
 	public void onPlayerMove(PlayerMoveEvent event)
 	{
 		Player player = event.getPlayer();
-		
+
 		if (useHash)
 		{
 			Vector playerHead = new Vector(player.getLocation().getX() + 0.5, player.getLocation().getY() + 1.5, player.getLocation().getZ() + 0.5);
@@ -393,17 +398,17 @@ public class ATPListener extends PlayerListener{
 				ArrayList<Integer> tsc = this.hashturrets.get(playerHeadFloored);
 				this.activateSchedule();
 				// For each possible turret to shoot in that location check access and if they should shoot, make them.
-				for(int i : tsc)
+				for (int i : tsc)
 				{
-				    Turret turret = this.turrets.get(i);
-			    	if (turret.canShoot())
-			    	{
-			    		if (!turret.getOwners().contains(player.getName()) && !turret.getAccessors().contains(player.getName()))
+					Turret turret = this.turrets.get(i);
+					if (turret.canShoot())
+					{
+						if (!turret.getOwners().contains(player.getName()) && !turret.getAccessors().contains(player.getName()))
 						{
 							this.shoot(player, speed, spread, playerHead.toLocation(player.getWorld()), turret.getLoc().toVector());
 							turret.setCanShoot(false);
 						}
-		    		}
+					}
 				}
 			}
 		}
@@ -426,23 +431,23 @@ public class ATPListener extends PlayerListener{
 			}
 		}
 	}
-	
+
 	public void shoot(Player player, float speed, float spread, Location target, Vector shooter)
 	{
 		for (int i = 0; i < this.numberOfArrows; i++)
 		{
-	        Location drag = new Location(target.getWorld(), target.getX() - shooter.getX(), target.getY() - shooter.getY(), target.getZ() - shooter.getZ());
+			Location drag = new Location(target.getWorld(), target.getX() - shooter.getX(), target.getY() - shooter.getY(), target.getZ() - shooter.getZ());
 			Location startPos = new Location(target.getWorld(), target.getX() - drag.getX() + 0.5, target.getY() - drag.getY() + 0.5, target.getZ() - drag.getZ() + 0.5);
 			target.getWorld().spawnArrow(startPos, drag.toVector(), speed, spread);
-	        /*en arrow = new en(etc.getMCServer().e);
-	        arrow.c(startPos.x + 0.5, startPos.y + 0.5,
-	        		startPos.z + 0.5, 0, 0);
-	        etc.getMCServer().e.a(arrow);
-	        arrow.a(drag.x, drag.y, drag.z,
-	        		speed, spread);*/
+			/*en arrow = new en(etc.getMCServer().e);
+			arrow.c(startPos.x + 0.5, startPos.y + 0.5,
+			startPos.z + 0.5, 0, 0);
+			etc.getMCServer().e.a(arrow);
+			arrow.a(drag.x, drag.y, drag.z,
+			speed, spread);*/
 		}
-    }
-	
+	}
+
 	public boolean removeShooter(Location loc)
 	{
 		for (int i = 0; i < this.turrets.size(); i++)
@@ -458,7 +463,7 @@ public class ATPListener extends PlayerListener{
 		}
 		return false;
 	}
-	
+
 	public void removeHashTurret(Turret turret)
 	{
 		/*int cx = turret.getLoc().getBlockX() - this.xDis;
@@ -467,44 +472,44 @@ public class ATPListener extends PlayerListener{
 		int nrOfBlocksRemoved = 0;
 		for (int x = 0; x < (this.xDis * 2) + 1; x++)
 		{
-			for (int y = 0; y < (this.yDis * 2) + 1; y++)
-			{
-				for (int z = 0; z < (this.zDis * 2) + 1; z++)
-				{
-					Vector cBlock = new Vector(cx + x, cy + y, cz + z);
-					ArrayList<Turret> turrets = this.hashturrets.get(cBlock);
-					if (turrets != null)
-					{
-						for (int i = 0; i < turrets.size(); i++)
-						{
-							if (turrets.get(i).equals(turret))
-							{
-								turrets.remove(i);
-								break;
-							}
-						}
-						if (turrets.isEmpty())
-						{
-							this.hashturrets.remove(cBlock);
-							nrOfBlocksRemoved++;
-						}
-					}
-				}
-			}
+		for (int y = 0; y < (this.yDis * 2) + 1; y++)
+		{
+		for (int z = 0; z < (this.zDis * 2) + 1; z++)
+		{
+		Vector cBlock = new Vector(cx + x, cy + y, cz + z);
+		ArrayList<Turret> turrets = this.hashturrets.get(cBlock);
+		if (turrets != null)
+		{
+		for (int i = 0; i < turrets.size(); i++)
+		{
+		if (turrets.get(i).equals(turret))
+		{
+		turrets.remove(i);
+		break;
+		}
+		}
+		if (turrets.isEmpty())
+		{
+		this.hashturrets.remove(cBlock);
+		nrOfBlocksRemoved++;
+		}
+		}
+		}
+		}
 		}*/
 	}
-	
-	public boolean isInTurretArea (Player player, Vector turretLoc)
+
+	public boolean isInTurretArea(Player player, Vector turretLoc)
 	{
-		if (player.getLocation().getX() + 0.5 < turretLoc.getX() + this.xDis - 1 && player.getLocation().getX() + 0.5 > turretLoc.getX() - this.xDis - 1 &&
-			player.getLocation().getZ() + 0.5 < turretLoc.getZ() + this.zDis && player.getLocation().getZ() + 0.5 > turretLoc.getZ() - this.zDis &&
-			player.getLocation().getY() + 1.5 < turretLoc.getY() + this.yDis && player.getLocation().getY() + 1.5 > turretLoc.getY() - this.yDis)
+		if (player.getLocation().getX() + 0.5 < turretLoc.getX() + this.xDis - 1 && player.getLocation().getX() + 0.5 > turretLoc.getX() - this.xDis - 1
+			&& player.getLocation().getZ() + 0.5 < turretLoc.getZ() + this.zDis && player.getLocation().getZ() + 0.5 > turretLoc.getZ() - this.zDis
+			&& player.getLocation().getY() + 1.5 < turretLoc.getY() + this.yDis && player.getLocation().getY() + 1.5 > turretLoc.getY() - this.yDis)
 		{
 			return true;
 		}
 		return false;
 	}
-	
+
 	public void loadConfig()
 	{
 		this.atItemId = arrTurret.config.getInt("item-id", 288);
@@ -518,7 +523,7 @@ public class ATPListener extends PlayerListener{
 		this.turretsFilePath = arrTurret.getDataFolder() + File.separator + "ArrowTurrets.txt";
 		this.useHash = arrTurret.config.getBoolean("use-hash", true);
 	}
-	
+
 	public void saveTurrets()
 	{
 		try
@@ -532,7 +537,7 @@ public class ATPListener extends PlayerListener{
 				else
 					System.out.println("[ArrowTurrets] Failed to create ArrowTurrets directory!");
 			}
-			
+
 			try
 			{
 				boolean first = true;
@@ -570,15 +575,15 @@ public class ATPListener extends PlayerListener{
 					}
 					if (turret.getSeatLoc() != null)
 					{
-						bw.write(turret.getName() + ";" + owners + ";" + accessors + ";" +
-								turret.getLoc().getX() + "," + turret.getLoc().getY() + "," + turret.getLoc().getZ() + ";" +
-								turret.getSeatLoc().getX() + "," + turret.getSeatLoc().getY() + "," + turret.getSeatLoc().getZ());
+						bw.write(turret.getName() + ";" + owners + ";" + accessors + ";"
+								 + turret.getLoc().getX() + "," + turret.getLoc().getY() + "," + turret.getLoc().getZ() + ";"
+								 + turret.getSeatLoc().getX() + "," + turret.getSeatLoc().getY() + "," + turret.getSeatLoc().getZ());
 					}
 					else
 					{
-						bw.write(turret.getName() + ";" + owners + ";" + accessors + ";" +
-								turret.getLoc().getX() + "," + turret.getLoc().getY() + "," + turret.getLoc().getZ() + ";" +
-								",,");
+						bw.write(turret.getName() + ";" + owners + ";" + accessors + ";"
+								 + turret.getLoc().getX() + "," + turret.getLoc().getY() + "," + turret.getLoc().getZ() + ";"
+								 + ",,");
 					}
 					first = false;
 				}
@@ -598,7 +603,7 @@ public class ATPListener extends PlayerListener{
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void loadTurrets()
 	{
 		try
@@ -643,8 +648,8 @@ public class ATPListener extends PlayerListener{
 								else
 								{
 									Turret trt = new Turret(new ArrayList<String>(Arrays.asList(owners)),
-											new ArrayList<String>(Arrays.asList(accessors)),
-											new Location(this.arrTurret.getServer().getWorlds().get(0), Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])));
+															new ArrayList<String>(Arrays.asList(accessors)),
+															new Location(this.arrTurret.getServer().getWorlds().get(0), Float.valueOf(loc[0]), Float.valueOf(loc[1]), Float.valueOf(loc[2])));
 									if (!name.equals(""))
 										trt.setName(name);
 									if (seatLoc.length == 3)
@@ -662,7 +667,6 @@ public class ATPListener extends PlayerListener{
 			}
 			catch (IOException e)
 			{
-				
 			}
 			finally
 			{
@@ -671,7 +675,6 @@ public class ATPListener extends PlayerListener{
 		}
 		catch (IOException e)
 		{
-			
 		}
 	}
 }

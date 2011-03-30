@@ -84,7 +84,7 @@ public class ArrowTurrets extends JavaPlugin
 		playerListener.loadConfig();
 		playerListener.loadTurrets();
 		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
-		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_ITEM, playerListener, Priority.Normal, this);
+		getServer().getPluginManager().registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
 		logger.info(name + " " + version + " initialized!");
 	}
 
